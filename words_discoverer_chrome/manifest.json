@@ -9,15 +9,15 @@
     "48": "result48.png",
     "128": "icon_128.png"
   },
-  "browser_action": {
+  "action": {
     "default_popup": "popup.html"
   },
   "author": "Dmitry Ignatovich",
   "permissions": ["storage", "unlimitedStorage", "contextMenus", "tts", "identity"],
   "optional_permissions": ["https://*/*"],
   "background": {
-    "service_worker": "background.js",
-    "type": "module"
+    "service_worker": "background.js"
+    // "type": "module"
   },
   "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'self'" },
   "oauth2": {
@@ -34,7 +34,7 @@
     {
       "matches": ["<all_urls>"],
       "css": ["content_script.css"],
-      "js": ["a.js"],
+      "js": ["common_lib.js", "context_menu_lib.js", "content_script.js"],
       "run_at": "document_start"
     }
   ]
