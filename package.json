@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "watch": "webpack --config webpack.config.js --watch",
+    "build": "npm run clean && webpack --config webpack.config.js",
+    "clean": "rimraf dist"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^12.0.2",
+    "rimraf": "^5.0.5",
+    "webpack": "^5.90.1",
+    "webpack-cli": "^5.1.4"
+  }
+}

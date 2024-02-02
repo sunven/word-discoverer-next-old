@@ -14,9 +14,9 @@
   },
   "author": "Dmitry Ignatovich",
   "permissions": ["storage", "unlimitedStorage", "contextMenus", "tts", "identity"],
-  "optional_permissions": ["https://*/*"],
+  // "optional_permissions": ["https://*/*"],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "dist/js/background.js"
     // "type": "module"
   },
   "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'self'" },
@@ -26,7 +26,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["eng_dict.txt", "eng_idioms.txt", "content_script.js", "common_lib.js", "context_menu_lib.js"],
+      "resources": ["eng_dict.txt", "eng_idioms.txt"],
       "matches": ["<all_urls>"]
     }
   ],
@@ -34,7 +34,7 @@
     {
       "matches": ["<all_urls>"],
       "css": ["content_script.css"],
-      "js": ["common_lib.js", "context_menu_lib.js", "content_script.js"],
+      "js": ["dist/js/content.js"],
       "run_at": "document_start"
     }
   ]

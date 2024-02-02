@@ -1,4 +1,6 @@
-var isoLangs = {
+import { request_unhighlight, add_lexeme } from './common_lib'
+
+const isoLangs = {
   ab: 'Abkhaz',
   aa: 'Afar',
   af: 'Afrikaans',
@@ -175,42 +177,46 @@ var isoLangs = {
   za: 'Zhuang',
 }
 
-function get_dict_definition_url(dictUrl, text) {
+export function get_dict_definition_url(dictUrl, text) {
   return dictUrl + encodeURIComponent(text)
 }
 
-function showDefinition(dictUrl, text) {
+export function showDefinition(dictUrl, text) {
   var fullUrl = get_dict_definition_url(dictUrl, text)
   chrome.tabs.create({ url: fullUrl }, function (tab) {
     // opens definition in a new tab
   })
 }
 
-function createDictionaryEntry(title, dictUrl, entryId) {
+export function createDictionaryEntry(title, dictUrl, entryId) {
   chrome.contextMenus.create({
     title: title,
     contexts: ['selection'],
     id: entryId,
-    onclick: function (info, tab) {
-      var word = info.selectionText
-      showDefinition(dictUrl, word)
-    },
+    // onclick: function (info, tab) {
+    //   var word = info.selectionText
+    //   showDefinition(dictUrl, word)
+    // },
+  })
+  chrome.contextMenus.onClicked.addListener(function (info, tab) {
+    var word = info.selectionText
+    showDefinition(dictUrl, word)
   })
 }
 
-function context_handle_add_result(report, lemma) {
+export function context_handle_add_result(report, lemma) {
   if (report === 'ok') {
     request_unhighlight(lemma)
   }
 }
 
-function onClickHandler(info, tab) {
+export function onClickHandler(info, tab) {
   var word = info.selectionText
   add_lexeme(word, context_handle_add_result)
 }
 
-function make_default_online_dicts() {
-  result = []
+export function make_default_online_dicts() {
+  const result = []
 
   var uiLang = chrome.i18n.getUILanguage()
   uiLang = uiLang.split('-')[0]
@@ -227,15 +233,16 @@ function make_default_online_dicts() {
   return result
 }
 
-function initContextMenus(dictPairs) {
+export function initContextMenus(dictPairs) {
   chrome.contextMenus.removeAll(function () {
     var title = chrome.i18n.getMessage('menuItem')
     chrome.contextMenus.create({
       title: title,
       contexts: ['selection'],
       id: 'vocab_select_add',
-      onclick: onClickHandler,
+      // onclick: onClickHandler,
     })
+    chrome.contextMenus.onClicked.addListener(onClickHandler)
     chrome.contextMenus.create({ type: 'separator', contexts: ['selection'], id: 'wd_separator_id' })
     for (var i = 0; i < dictPairs.length; ++i) {
       createDictionaryEntry(dictPairs[i].title, dictPairs[i].url, 'wd_define_' + i)

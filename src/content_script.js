@@ -1,3 +1,5 @@
+import { make_id_suffix, add_lexeme, make_hl_style } from './common_lib'
+
 var dict_words = null
 var dict_idioms = null
 
@@ -35,14 +37,14 @@ function get_rare_lemma(word) {
     wf = dict_words[word]
   }
   if (!wf || wf[1] < min_show_rank) return undefined
-  lemma = wf[0]
+  const lemma = wf[0]
   return !user_vocabulary || !user_vocabulary.hasOwnProperty(lemma) ? lemma : undefined
 }
 
 function get_word_percentile(word) {
   if (!dict_words.hasOwnProperty(word)) return undefined
-  wf = dict_words[word]
-  result = Math.ceil((wf[1] * 100) / word_max_rank)
+  const wf = dict_words[word]
+  const result = Math.ceil((wf[1] * 100) / word_max_rank)
   return result
 }
 
@@ -71,29 +73,29 @@ function renderBubble() {
   if (!node_to_render_id) return
   if (node_to_render_id === rendered_node_id) return
 
-  node_to_render = document.getElementById(node_to_render_id)
+  const node_to_render = document.getElementById(node_to_render_id)
   if (!node_to_render) return
 
-  classattr = node_to_render.getAttribute('class')
-  is_highlighted = classattr != 'wdautohl_none_none'
-  param_key = is_highlighted ? 'hl_hover' : 'ow_hover'
-  param_value = wd_hover_settings[param_key]
+  const classattr = node_to_render.getAttribute('class')
+  const is_highlighted = classattr != 'wdautohl_none_none'
+  const param_key = is_highlighted ? 'hl_hover' : 'ow_hover'
+  const param_value = wd_hover_settings[param_key]
   if (param_value == 'never' || (param_value == 'key' && !function_key_is_pressed)) {
     return
   }
 
-  wdSpanText = node_to_render.textContent
-  bubbleDOM = document.getElementById('wd_selection_bubble')
-  bubbleText = document.getElementById('wd_selection_bubble_text')
-  bubbleFreq = document.getElementById('wd_selection_bubble_freq')
+  const wdSpanText = node_to_render.textContent
+  const bubbleDOM = document.getElementById('wd_selection_bubble')
+  const bubbleText = document.getElementById('wd_selection_bubble_text')
+  const bubbleFreq = document.getElementById('wd_selection_bubble_freq')
   const iframe = document.getElementById('wd_iframe_bing')
   iframe.src =
     'https://cn.bing.com/dict/clientsearch?mkt=zh-CN&setLang=zh&form=BDVEHC&ClientVer=BDDTV3.5.1.4320&q=' + wdSpanText
   bubbleText.textContent = limit_text_len(wdSpanText)
-  prcntFreq = get_word_percentile(wdSpanText.toLowerCase())
+  const prcntFreq = get_word_percentile(wdSpanText.toLowerCase())
   bubbleFreq.textContent = prcntFreq ? prcntFreq + '%' : 'n/a'
   bubbleFreq.style.backgroundColor = getHeatColorPoint(prcntFreq)
-  current_lexeme = wdSpanText
+  const current_lexeme = wdSpanText
   var bcr = node_to_render.getBoundingClientRect()
   bubbleDOM.style.top = bcr.bottom + 'px'
   bubbleDOM.style.left = Math.max(5, Math.floor((bcr.left + bcr.right) / 2) - 100) + 'px'
@@ -106,7 +108,7 @@ function renderBubble() {
 }
 
 function hideBubble(force) {
-  bubbleDOM = document.getElementById('wd_selection_bubble')
+  const bubbleDOM = document.getElementById('wd_selection_bubble')
   if (force || (!bubbleDOM.wdMouseOn && node_to_render_id != rendered_node_id)) {
     bubbleDOM.style.display = 'none'
     rendered_node_id = null
@@ -196,7 +198,7 @@ function text_to_hl_nodes(text, dst) {
       }
     }
     if (!match && wd_hl_settings.wordParams.enabled) {
-      lemma = get_rare_lemma(tokens[wnum])
+      const lemma = get_rare_lemma(tokens[wnum])
       if (lemma) {
         match = { normalized: lemma, kind: 'lemma', begin: ibegin, end: ibegin + tokens[wnum].length }
         ibegin += tokens[wnum].length + 1
@@ -227,13 +229,13 @@ function text_to_hl_nodes(text, dst) {
   var last_hl_end_pos = 0
   var insert_count = 0
   for (var i = 0; i < matches.length; i++) {
-    text_style = undefined
+    let text_style = undefined
     match = matches[i]
     if (match.kind === 'lemma') {
-      hlParams = wd_hl_settings.wordParams
+      const hlParams = wd_hl_settings.wordParams
       text_style = make_hl_style(hlParams)
     } else if (match.kind === 'idiom') {
-      hlParams = wd_hl_settings.idiomParams
+      const hlParams = wd_hl_settings.idiomParams
       text_style = make_hl_style(hlParams)
     } else if (match.kind === 'word') {
       text_style = 'font:inherit;display:inline;color:inherit;background-color:inherit;'
@@ -245,7 +247,7 @@ function text_to_hl_nodes(text, dst) {
       }
       last_hl_end_pos = match.end
       //span = document.createElement("span");
-      span = document.createElement('wdautohl-customtag')
+      const span = document.createElement('wdautohl-customtag')
       span.textContent = text.slice(match.begin, last_hl_end_pos)
       span.setAttribute('style', text_style)
       span.id = 'wdautohl_id_' + cur_wd_node_id
@@ -292,18 +294,18 @@ function doHighlightText(textNodes) {
     if (textNodes[i].offsetParent === null) {
       continue
     }
-    text = textNodes[i].textContent
+    const text = textNodes[i].textContent
     if (text.length <= 3) {
       continue
     }
     if (text.indexOf('{') !== -1 && text.indexOf('}') !== -1) {
       continue //pathetic hack to skip json data in text (e.g. google images use it).
     }
-    new_children = []
-    found_count = text_to_hl_nodes(text, new_children)
+    const new_children = []
+    const found_count = text_to_hl_nodes(text, new_children)
     if (found_count) {
       num_found += found_count
-      parent_node = textNodes[i].parentNode
+      const parent_node = textNodes[i].parentNode
       assert(new_children.length > 0, 'children must be non empty')
       for (var j = 0; j < new_children.length; j++) {
         parent_node.insertBefore(new_children[j], textNodes[i])

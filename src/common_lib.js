@@ -1,16 +1,16 @@
-function request_unhighlight(lemma) {
+export function request_unhighlight(lemma) {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     chrome.tabs.sendMessage(tabs[0].id, { wdm_unhighlight: lemma })
   })
 }
 
-function make_id_suffix(text) {
+export function make_id_suffix(text) {
   var before = btoa(text)
   var after = before.replace(/\+/g, '_').replace(/\//g, '-').replace(/=/g, '_')
   return after
 }
 
-function sync_if_needed() {
+export function sync_if_needed() {
   var req_keys = ['wd_last_sync', 'wd_gd_sync_enabled', 'wd_last_sync_error']
   chrome.storage.local.get(req_keys, function (result) {
     var wd_last_sync = result.wd_last_sync
@@ -28,7 +28,7 @@ function sync_if_needed() {
   })
 }
 
-function add_lexeme(lexeme, result_handler) {
+export function add_lexeme(lexeme, result_handler) {
   var req_keys = [
     'words_discoverer_eng_dict',
     'wd_idioms',
@@ -90,9 +90,9 @@ function add_lexeme(lexeme, result_handler) {
   })
 }
 
-function make_hl_style(hl_params) {
+export function make_hl_style(hl_params) {
   if (!hl_params.enabled) return undefined
-  result = ''
+  let result = ''
   if (hl_params.bold) result += 'font-weight:bold;'
   if (hl_params.useBackground) result += 'background-color:' + hl_params.backgroundColor + ';'
   if (hl_params.useColor) result += 'color:' + hl_params.color + ';'
@@ -101,7 +101,7 @@ function make_hl_style(hl_params) {
   return result
 }
 
-function localizeHtmlPage() {
+export function localizeHtmlPage() {
   //Localize by replacing __MSG_***__ meta tags
   var objects = document.getElementsByTagName('html')
   for (var j = 0; j < objects.length; j++) {
@@ -116,7 +116,7 @@ function localizeHtmlPage() {
   }
 }
 
-function spformat(src) {
+export function spformat(src) {
   var args = Array.prototype.slice.call(arguments, 1)
   return src.replace(/{(\d+)}/g, function (match, number) {
     return typeof args[number] != 'undefined' ? args[number] : match

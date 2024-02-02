@@ -1,381 +1,4 @@
-//#region common_lib
-
-//#region context_menu_lib
-
-var isoLangs = {
-  ab: 'Abkhaz',
-  aa: 'Afar',
-  af: 'Afrikaans',
-  ak: 'Akan',
-  sq: 'Albanian',
-  am: 'Amharic',
-  ar: 'Arabic',
-  an: 'Aragonese',
-  hy: 'Armenian',
-  as: 'Assamese',
-  av: 'Avaric',
-  ae: 'Avestan',
-  ay: 'Aymara',
-  az: 'Azerbaijani',
-  bm: 'Bambara',
-  ba: 'Bashkir',
-  eu: 'Basque',
-  be: 'Belarusian',
-  bn: 'Bengali',
-  bh: 'Bihari',
-  bi: 'Bislama',
-  bs: 'Bosnian',
-  br: 'Breton',
-  bg: 'Bulgarian',
-  my: 'Burmese',
-  ca: 'Catalan',
-  ch: 'Chamorro',
-  ce: 'Chechen',
-  ny: 'Chichewa',
-  zh: 'Chinese',
-  cv: 'Chuvash',
-  kw: 'Cornish',
-  co: 'Corsican',
-  cr: 'Cree',
-  hr: 'Croatian',
-  cs: 'Czech',
-  da: 'Danish',
-  dv: 'Divehi',
-  nl: 'Dutch',
-  en: 'English',
-  eo: 'Esperanto',
-  et: 'Estonian',
-  ee: 'Ewe',
-  fo: 'Faroese',
-  fj: 'Fijian',
-  fi: 'Finnish',
-  fr: 'French',
-  ff: 'Fula',
-  gl: 'Galician',
-  ka: 'Georgian',
-  de: 'German',
-  el: 'Greek',
-  gu: 'Gujarati',
-  ht: 'Haitian',
-  ha: 'Hausa',
-  he: 'Hebrew',
-  hz: 'Herero',
-  hi: 'Hindi',
-  ho: 'Hiri Motu',
-  hu: 'Hungarian',
-  ia: 'Interlingua',
-  id: 'Indonesian',
-  ie: 'Interlingue',
-  ga: 'Irish',
-  ig: 'Igbo',
-  ik: 'Inupiaq',
-  io: 'Ido',
-  is: 'Icelandic',
-  it: 'Italian',
-  iu: 'Inuktitut',
-  ja: 'Japanese',
-  jv: 'Javanese',
-  kl: 'Kalaallisut',
-  kn: 'Kannada',
-  kr: 'Kanuri',
-  ks: 'Kashmiri',
-  kk: 'Kazakh',
-  km: 'Khmer',
-  ki: 'Kikuyu',
-  rw: 'Kinyarwanda',
-  ky: 'Kirghiz',
-  kv: 'Komi',
-  kg: 'Kongo',
-  ko: 'Korean',
-  ku: 'Kurdish',
-  kj: 'Kwanyama',
-  la: 'Latin',
-  lb: 'Luxembourgish',
-  lg: 'Luganda',
-  li: 'Limburgish',
-  ln: 'Lingala',
-  lo: 'Lao',
-  lt: 'Lithuanian',
-  lu: 'Luba-Katanga',
-  lv: 'Latvian',
-  gv: 'Manx',
-  mk: 'Macedonian',
-  mg: 'Malagasy',
-  ms: 'Malay',
-  ml: 'Malayalam',
-  mt: 'Maltese',
-  mh: 'Marshallese',
-  mn: 'Mongolian',
-  na: 'Nauru',
-  nv: 'Navajo',
-  nd: 'Ndebele',
-  ne: 'Nepali',
-  ng: 'Ndonga',
-  nn: 'Norwegian',
-  no: 'Norwegian',
-  ii: 'Nuosu',
-  nr: 'Ndebele',
-  oc: 'Occitan',
-  oj: 'Ojibwe',
-  om: 'Oromo',
-  or: 'Oriya',
-  os: 'Ossetian',
-  pa: 'Panjabi',
-  fa: 'Persian',
-  pl: 'Polish',
-  ps: 'Pashto',
-  pt: 'Portuguese',
-  qu: 'Quechua',
-  rm: 'Romansh',
-  rn: 'Kirundi',
-  ro: 'Romanian',
-  ru: 'Russian',
-  sc: 'Sardinian',
-  sd: 'Sindhi',
-  se: 'Sami',
-  sm: 'Samoan',
-  sg: 'Sango',
-  sr: 'Serbian',
-  gd: 'Gaelic',
-  sn: 'Shona',
-  si: 'Sinhala',
-  sk: 'Slovak',
-  sl: 'Slovene',
-  so: 'Somali',
-  st: 'Sotho',
-  es: 'Spanish',
-  su: 'Sundanese',
-  sw: 'Swahili',
-  ss: 'Swati',
-  sv: 'Swedish',
-  ta: 'Tamil',
-  te: 'Telugu',
-  tg: 'Tajik',
-  th: 'Thai',
-  ti: 'Tigrinya',
-  bo: 'Tibetan',
-  tk: 'Turkmen',
-  tl: 'Tagalog',
-  tn: 'Tswana',
-  to: 'Tonga',
-  tr: 'Turkish',
-  ts: 'Tsonga',
-  tt: 'Tatar',
-  tw: 'Twi',
-  ty: 'Tahitian',
-  ug: 'Uighur',
-  uk: 'Ukrainian',
-  ur: 'Urdu',
-  uz: 'Uzbek',
-  ve: 'Venda',
-  vi: 'Vietnamese',
-  wa: 'Walloon',
-  cy: 'Welsh',
-  wo: 'Wolof',
-  fy: 'Frisian',
-  xh: 'Xhosa',
-  yi: 'Yiddish',
-  yo: 'Yoruba',
-  za: 'Zhuang',
-}
-
-function get_dict_definition_url(dictUrl, text) {
-  return dictUrl + encodeURIComponent(text)
-}
-
-function showDefinition(dictUrl, text) {
-  var fullUrl = get_dict_definition_url(dictUrl, text)
-  chrome.tabs.create({ url: fullUrl }, function (tab) {
-    // opens definition in a new tab
-  })
-}
-
-function createDictionaryEntry(title, dictUrl, entryId) {
-  chrome.contextMenus.create({
-    title: title,
-    contexts: ['selection'],
-    id: entryId,
-    onclick: function (info, tab) {
-      var word = info.selectionText
-      showDefinition(dictUrl, word)
-    },
-  })
-}
-
-function context_handle_add_result(report, lemma) {
-  if (report === 'ok') {
-    request_unhighlight(lemma)
-  }
-}
-
-function onClickHandler(info, tab) {
-  var word = info.selectionText
-  add_lexeme(word, context_handle_add_result)
-}
-
-function make_default_online_dicts() {
-  result = []
-
-  var uiLang = chrome.i18n.getUILanguage()
-  uiLang = uiLang.split('-')[0]
-  if (uiLang != 'en' && isoLangs.hasOwnProperty(uiLang)) {
-    var langName = isoLangs[uiLang]
-    result.push({
-      title: 'Translate to ' + langName + ' in Google',
-      url: 'https://translate.google.com/#en/' + uiLang + '/',
-    })
-  }
-  result.push({ title: 'Define in Merriam-Webster', url: 'https://www.merriam-webster.com/dictionary/' })
-  result.push({ title: 'Define in Google', url: 'https://encrypted.google.com/search?hl=en&gl=en&q=define:' })
-  result.push({ title: 'View pictures in Google', url: 'https://encrypted.google.com/search?hl=en&gl=en&tbm=isch&q=' })
-  return result
-}
-
-function initContextMenus(dictPairs) {
-  chrome.contextMenus.removeAll(function () {
-    var title = chrome.i18n.getMessage('menuItem')
-    chrome.contextMenus.create({
-      title: title,
-      contexts: ['selection'],
-      id: 'vocab_select_add',
-      onclick: onClickHandler,
-    })
-    chrome.contextMenus.create({ type: 'separator', contexts: ['selection'], id: 'wd_separator_id' })
-    for (var i = 0; i < dictPairs.length; ++i) {
-      createDictionaryEntry(dictPairs[i].title, dictPairs[i].url, 'wd_define_' + i)
-    }
-  })
-}
-
-//#endregion
-
-function request_unhighlight(lemma) {
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    chrome.tabs.sendMessage(tabs[0].id, { wdm_unhighlight: lemma })
-  })
-}
-
-function make_id_suffix(text) {
-  var before = btoa(text)
-  var after = before.replace(/\+/g, '_').replace(/\//g, '-').replace(/=/g, '_')
-  return after
-}
-
-function sync_if_needed() {
-  var req_keys = ['wd_last_sync', 'wd_gd_sync_enabled', 'wd_last_sync_error']
-  chrome.storage.local.get(req_keys, function (result) {
-    var wd_last_sync = result.wd_last_sync
-    var wd_gd_sync_enabled = result.wd_gd_sync_enabled
-    var wd_last_sync_error = result.wd_last_sync_error
-    if (!wd_gd_sync_enabled || wd_last_sync_error != null) {
-      return
-    }
-    var cur_date = new Date()
-    var mins_passed = (cur_date.getTime() - wd_last_sync) / (60 * 1000)
-    var sync_period_mins = 30
-    if (mins_passed >= sync_period_mins) {
-      chrome.runtime.sendMessage({ wdm_request: 'gd_sync', interactive_mode: false })
-    }
-  })
-}
-
-function add_lexeme(lexeme, result_handler) {
-  var req_keys = [
-    'words_discoverer_eng_dict',
-    'wd_idioms',
-    'wd_user_vocabulary',
-    'wd_user_vocab_added',
-    'wd_user_vocab_deleted',
-  ]
-  chrome.storage.local.get(req_keys, function (result) {
-    var dict_words = result.words_discoverer_eng_dict
-    var dict_idioms = result.wd_idioms
-    var user_vocabulary = result.wd_user_vocabulary
-    var wd_user_vocab_added = result.wd_user_vocab_added
-    var wd_user_vocab_deleted = result.wd_user_vocab_deleted
-    if (lexeme.length > 100) {
-      result_handler('bad', undefined)
-      return
-    }
-    lexeme = lexeme.toLowerCase()
-    lexeme = lexeme.trim()
-    if (!lexeme) {
-      result_handler('bad', undefined)
-      return
-    }
-
-    var key = lexeme
-    if (dict_words.hasOwnProperty(lexeme)) {
-      var wf = dict_words[lexeme]
-      if (wf) {
-        key = wf[0]
-      }
-    } else if (dict_idioms.hasOwnProperty(lexeme)) {
-      var wf = dict_idioms[lexeme]
-      if (wf && wf != -1) {
-        key = wf
-      }
-    }
-
-    if (user_vocabulary.hasOwnProperty(key)) {
-      result_handler('exists', key)
-      return
-    }
-
-    var new_state = { wd_user_vocabulary: user_vocabulary }
-
-    user_vocabulary[key] = 1
-    if (typeof wd_user_vocab_added !== 'undefined') {
-      wd_user_vocab_added[key] = 1
-      new_state['wd_user_vocab_added'] = wd_user_vocab_added
-    }
-    if (typeof wd_user_vocab_deleted !== 'undefined') {
-      delete wd_user_vocab_deleted[key]
-      new_state['wd_user_vocab_deleted'] = wd_user_vocab_deleted
-    }
-
-    chrome.storage.local.set(new_state, function () {
-      sync_if_needed()
-      result_handler('ok', key)
-    })
-  })
-}
-
-function make_hl_style(hl_params) {
-  if (!hl_params.enabled) return undefined
-  result = ''
-  if (hl_params.bold) result += 'font-weight:bold;'
-  if (hl_params.useBackground) result += 'background-color:' + hl_params.backgroundColor + ';'
-  if (hl_params.useColor) result += 'color:' + hl_params.color + ';'
-  if (!result) return undefined
-  result += 'font-size:inherit;display:inline;'
-  return result
-}
-
-function localizeHtmlPage() {
-  //Localize by replacing __MSG_***__ meta tags
-  var objects = document.getElementsByTagName('html')
-  for (var j = 0; j < objects.length; j++) {
-    var obj = objects[j]
-    var valStrH = obj.innerHTML.toString()
-    var valNewH = valStrH.replace(/__MSG_(\w+)__/g, function (match, v1) {
-      return v1 ? chrome.i18n.getMessage(v1) : ''
-    })
-    if (valNewH != valStrH) {
-      obj.innerHTML = valNewH
-    }
-  }
-}
-
-function spformat(src) {
-  var args = Array.prototype.slice.call(arguments, 1)
-  return src.replace(/{(\d+)}/g, function (match, number) {
-    return typeof args[number] != 'undefined' ? args[number] : match
-  })
-}
-
-//#endregion
-
+import { make_default_online_dicts, initContextMenus } from './context_menu_lib'
 var gapi_loaded = false
 var gapi_inited = false
 
@@ -397,21 +20,21 @@ function do_load_dictionary(file_text) {
     }
     rare_words[fields[0]] = [fields[1], rank]
   }
-  local_storage = chrome.storage.local
+  const local_storage = chrome.storage.local
   local_storage.set({ words_discoverer_eng_dict: rare_words })
   local_storage.set({ wd_word_max_rank: rank })
 }
 
 function load_eng_dictionary() {
-  var file_path = chrome.runtime.getURL('eng_dict.txt')
-  //   var xhr = new XMLHttpRequest()
-  //   xhr.onreadystatechange = function () {
-  //     if (xhr.readyState == XMLHttpRequest.DONE) {
-  //       do_load_dictionary(xhr.responseText)
-  //     }
+  const file_path = chrome.runtime.getURL('eng_dict.txt')
+  // var xhr = new XMLHttpRequest()
+  // xhr.onreadystatechange = function () {
+  //   if (xhr.readyState == XMLHttpRequest.DONE) {
+  //     do_load_dictionary(xhr.responseText)
   //   }
-  //   xhr.open('GET', file_path, true)
-  //   xhr.send(null)
+  // }
+  // xhr.open('GET', file_path, true)
+  // xhr.send(null)
   fetch(file_path)
     .then(res => res.text())
     .then(do_load_dictionary)
@@ -425,26 +48,26 @@ function do_load_idioms(file_text) {
     if (lno + 1 === lines.length && fields.length == 1) break
     var words = fields[0].split(' ')
     for (var i = 0; i + 1 < words.length; ++i) {
-      key = words.slice(0, i + 1).join(' ')
+      const key = words.slice(0, i + 1).join(' ')
       rare_words[key] = -1
     }
-    key = fields[0]
+    const key = fields[0]
     rare_words[key] = fields[1]
   }
-  local_storage = chrome.storage.local
+  const local_storage = chrome.storage.local
   local_storage.set({ wd_idioms: rare_words })
 }
 
 function load_idioms() {
-  file_path = chrome.runtime.getURL('eng_idioms.txt')
-  //   var xhr = new XMLHttpRequest()
-  //   xhr.onreadystatechange = function () {
-  //     if (xhr.readyState == XMLHttpRequest.DONE) {
-  //       do_load_idioms(xhr.responseText)
-  //     }
+  const file_path = chrome.runtime.getURL('eng_idioms.txt')
+  // var xhr = new XMLHttpRequest()
+  // xhr.onreadystatechange = function () {
+  //   if (xhr.readyState == XMLHttpRequest.DONE) {
+  //     do_load_idioms(xhr.responseText)
   //   }
-  //   xhr.open('GET', file_path, true)
-  //   xhr.send(null)
+  // }
+  // xhr.open('GET', file_path, true)
+  // xhr.send(null)
   fetch(file_path)
     .then(res => res.text())
     .then(do_load_idioms)
@@ -492,7 +115,7 @@ function generate_key() {
 }
 
 function list_to_set(src_list) {
-  result = {}
+  const result = {}
   for (var i = 0; i < src_list.length; ++i) {
     result[src_list[i]] = 1
   }
@@ -516,7 +139,7 @@ function add_to_set(lhs_set, rhs_set) {
 }
 
 function serialize_vocabulary(entries) {
-  keys = []
+  const keys = []
   for (var key in entries) {
     if (entries.hasOwnProperty(key)) {
       keys.push(key)
@@ -629,20 +252,20 @@ function apply_cloud_vocab(entries) {
 }
 
 function sync_vocabulary(dir_id, vocab) {
-  merge_and_upload_vocab = function (file_id, file_content) {
-    vocab_list = parse_vocabulary(file_content)
+  const merge_and_upload_vocab = function (file_id, file_content) {
+    const vocab_list = parse_vocabulary(file_content)
     var entries = list_to_set(vocab_list)
     substract_from_set(entries, vocab.deleted)
     add_to_set(entries, vocab.added)
-    merged_content = serialize_vocabulary(entries)
+    const merged_content = serialize_vocabulary(entries)
 
-    set_merged_vocab = function () {
+    const set_merged_vocab = function () {
       apply_cloud_vocab(entries)
     }
     upload_file_content(file_id, merged_content, set_merged_vocab)
   }
 
-  merge_vocab_to_cloud = function (file_id) {
+  const merge_vocab_to_cloud = function (file_id) {
     fetch_file_content(file_id, merge_and_upload_vocab)
   }
 
@@ -653,7 +276,7 @@ function sync_vocabulary(dir_id, vocab) {
     "' and trashed = false and appProperties has { key='wdfile' and value='1' } and '" +
     dir_id +
     "' in parents"
-  create_new_file_wrap = function () {
+  const create_new_file_wrap = function () {
     create_new_file(vocab_file_name, dir_id, merge_vocab_to_cloud)
     var new_added = {}
     add_to_set(new_added, vocab.all)
@@ -664,16 +287,16 @@ function sync_vocabulary(dir_id, vocab) {
 }
 
 function backup_vocabulary(dir_id, vocab, success_cb) {
-  merge_and_upload_backup = function (file_id, file_content) {
-    vocab_list = parse_vocabulary(file_content)
+  const merge_and_upload_backup = function (file_id, file_content) {
+    const vocab_list = parse_vocabulary(file_content)
     var entries = list_to_set(vocab_list)
     add_to_set(entries, vocab.all)
     add_to_set(entries, vocab.deleted)
     add_to_set(entries, vocab.added)
-    merged_content = serialize_vocabulary(entries)
+    const merged_content = serialize_vocabulary(entries)
     upload_file_content(file_id, merged_content, success_cb)
   }
-  merge_backup_to_cloud = function (file_id) {
+  const merge_backup_to_cloud = function (file_id) {
     fetch_file_content(file_id, merge_and_upload_backup)
   }
 
@@ -684,7 +307,7 @@ function backup_vocabulary(dir_id, vocab, success_cb) {
     "' and trashed = false and appProperties has { key='wdfile' and value='1' } and '" +
     dir_id +
     "' in parents"
-  create_new_backup_file_wrap = function () {
+  const create_new_backup_file_wrap = function () {
     create_new_file(backup_file_name, dir_id, merge_backup_to_cloud)
   }
   find_gdrive_id(backup_query, merge_backup_to_cloud, create_new_backup_file_wrap)
@@ -693,13 +316,13 @@ function backup_vocabulary(dir_id, vocab, success_cb) {
 function perform_full_sync(vocab) {
   var dir_name = 'Words Discoverer Sync'
   var dir_query = "name = '" + dir_name + "' and trashed = false and appProperties has { key='wdfile' and value='1' }"
-  backup_and_sync_vocabulary = function (dir_id) {
-    sync_vocabulary_wrap = function () {
+  const backup_and_sync_vocabulary = function (dir_id) {
+    const sync_vocabulary_wrap = function () {
       sync_vocabulary(dir_id, vocab)
     }
     backup_vocabulary(dir_id, vocab, sync_vocabulary_wrap)
   }
-  create_new_dir_wrap = function () {
+  const create_new_dir_wrap = function () {
     create_new_dir(dir_name, backup_and_sync_vocabulary)
   }
   find_gdrive_id(dir_query, backup_and_sync_vocabulary, create_new_dir_wrap)
@@ -730,8 +353,8 @@ function sync_user_vocabularies() {
 }
 
 function init_gapi(interactive_authorization) {
-  gapikey = generate_key()
-  init_params = { apiKey: gapikey }
+  const gapikey = generate_key()
+  const init_params = { apiKey: gapikey }
   gapi.client.init(init_params).then(
     function () {
       gapi_inited = true
@@ -769,7 +392,7 @@ function start_sync_sequence(interactive_authorization) {
 function initialize_extension() {
   chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (request.wdm_request == 'hostname') {
-      tab_url = sender.tab.url
+      const tab_url = sender.tab.url
       var url = new URL(tab_url)
       var domain = url.hostname
       sendResponse({ wdm_hostname: domain })
@@ -830,9 +453,9 @@ function initialize_extension() {
     function (result) {
       load_eng_dictionary()
       load_idioms()
-      wd_hl_settings = result.wd_hl_settings
+      let wd_hl_settings = result.wd_hl_settings
       if (typeof wd_hl_settings == 'undefined') {
-        word_hl_params = {
+        const word_hl_params = {
           enabled: true,
           quoted: false,
           bold: true,
@@ -841,7 +464,7 @@ function initialize_extension() {
           useColor: true,
           color: 'red',
         }
-        idiom_hl_params = {
+        const idiom_hl_params = {
           enabled: true,
           quoted: false,
           bold: true,
@@ -856,11 +479,11 @@ function initialize_extension() {
         }
         chrome.storage.local.set({ wd_hl_settings: wd_hl_settings })
       }
-      wd_enable_tts = result.wd_enable_tts
+      const wd_enable_tts = result.wd_enable_tts
       if (typeof wd_enable_tts == 'undefined') {
         chrome.storage.local.set({ wd_enable_tts: false })
       }
-      wd_hover_settings = result.wd_hover_settings
+      let wd_hover_settings = result.wd_hover_settings
       if (typeof wd_hover_settings == 'undefined') {
         wd_hover_settings = { hl_hover: 'always', ow_hover: 'never' }
         chrome.storage.local.set({ wd_hover_settings: wd_hover_settings })
@@ -872,23 +495,23 @@ function initialize_extension() {
       }
       initContextMenus(wd_online_dicts)
 
-      show_percents = result.wd_show_percents
+      const show_percents = result.wd_show_percents
       if (typeof show_percents === 'undefined') {
         chrome.storage.local.set({ wd_show_percents: 15 })
       }
-      wd_is_enabled = result.wd_is_enabled
+      const wd_is_enabled = result.wd_is_enabled
       if (typeof wd_is_enabled === 'undefined') {
         chrome.storage.local.set({ wd_is_enabled: true })
       }
-      user_vocabulary = result.wd_user_vocabulary
+      const user_vocabulary = result.wd_user_vocabulary
       if (typeof user_vocabulary === 'undefined') {
         chrome.storage.local.set({ wd_user_vocabulary: {} })
       }
-      black_list = result.wd_black_list
+      const black_list = result.wd_black_list
       if (typeof black_list === 'undefined') {
         chrome.storage.local.set({ wd_black_list: {} })
       }
-      white_list = result.wd_white_list
+      const white_list = result.wd_white_list
       if (typeof white_list === 'undefined') {
         chrome.storage.local.set({ wd_white_list: {} })
       }
