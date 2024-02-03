@@ -1,0 +1,9 @@
+{
+  "javascript.validate.enable": false,
+  "[javascript][typescript][javascriptreact][typescriptreact]": {
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit"
+    }
+  }
+}

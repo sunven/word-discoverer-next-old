@@ -1,0 +1,27 @@
+{
+  "env": {
+    "browser": true,
+    "es6": true,
+    "webextensions": true
+  },
+  "extends": ["airbnb-base", "plugin:prettier/recommended"],
+  "parserOptions": {},
+  "rules": {
+    "camelcase": 0,
+    "no-unused-vars": 0,
+    "func-names": 0,
+    "no-prototype-builtins": 0,
+    "no-plusplus": 0,
+    "no-multi-assign": 0,
+    "no-param-reassign": 0,
+    "no-alert": 0,
+    "no-console": 0,
+    "no-continue": 0,
+    "no-use-before-define": [
+      "error",
+      {
+        "functions": false
+      }
+    ]
+  }
+}
