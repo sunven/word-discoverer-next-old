@@ -8,39 +8,46 @@ let dict_size = null;
 let enabled_mode = true;
 
 function display_mode() {
-  chrome.tabs.getSelected(null, function (tab) {
-    const url = new URL(tab.url);
-    const domain = url.hostname;
-    document.getElementById("addHostName").textContent = domain;
-    if (enabled_mode) {
-      document.getElementById("rb_enabled").checked = true;
-      document.getElementById("addToListLabel").textContent =
-        chrome.i18n.getMessage("addSkippedLabel");
-      document.getElementById("addToListLabel").href =
-        chrome.runtime.getURL("black_list.html");
-      chrome.storage.local.get(["wd_black_list"], function (result) {
-        const black_list = result.wd_black_list;
-        document.getElementById("addToList").checked =
-          black_list.hasOwnProperty(domain);
-      });
-    } else {
-      document.getElementById("rb_disabled").checked = true;
-      document.getElementById("addToListLabel").textContent =
-        chrome.i18n.getMessage("addFavoritesLabel");
-      document.getElementById("addToListLabel").href =
-        chrome.runtime.getURL("white_list.html");
-      chrome.storage.local.get(["wd_white_list"], function (result) {
-        const white_list = result.wd_white_list;
-        document.getElementById("addToList").checked =
-          white_list.hasOwnProperty(domain);
-      });
-    }
-  });
+  chrome.tabs.query(
+    {
+      active: true,
+    },
+    function (tabs) {
+      const tab = tabs[0];
+      const url = new URL(tab.url);
+      const domain = url.hostname;
+      document.getElementById("addHostName").textContent = domain;
+      if (enabled_mode) {
+        document.getElementById("rb_enabled").checked = true;
+        document.getElementById("addToListLabel").textContent =
+          chrome.i18n.getMessage("addSkippedLabel");
+        document.getElementById("addToListLabel").href =
+          chrome.runtime.getURL("black_list.html");
+        chrome.storage.local.get(["wd_black_list"], function (result) {
+          const black_list = result.wd_black_list;
+          document.getElementById("addToList").checked =
+            black_list.hasOwnProperty(domain);
+        });
+      } else {
+        document.getElementById("rb_disabled").checked = true;
+        document.getElementById("addToListLabel").textContent =
+          chrome.i18n.getMessage("addFavoritesLabel");
+        document.getElementById("addToListLabel").href =
+          chrome.runtime.getURL("white_list.html");
+        chrome.storage.local.get(["wd_white_list"], function (result) {
+          const white_list = result.wd_white_list;
+          document.getElementById("addToList").checked =
+            white_list.hasOwnProperty(domain);
+        });
+      }
+    },
+  );
 }
 
 function process_checkbox() {
   const checkboxElem = document.getElementById("addToList");
-  chrome.tabs.getSelected(null, function (tab) {
+  chrome.tabs.query({ active: true }, function (tabs) {
+    const tab = tabs[0];
     const url = new URL(tab.url);
     const domain = url.hostname;
     document.getElementById("addHostName").textContent = domain;
