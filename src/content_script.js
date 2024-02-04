@@ -569,6 +569,7 @@ function initForPage() {
           }
           const elementTagName = event.target.tagName;
           if (!disable_by_keypress && elementTagName != "BODY") {
+            // 例如新建issue，写md，然后预览会触发
             // workaround to prevent highlighting in facebook messages
             // this logic can also be helpful in other situations, it's better play safe and stop highlighting when user enters data.
             disable_by_keypress = true;
