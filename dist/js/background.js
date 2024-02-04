@@ -921,25 +921,25 @@ function initialize_extension() {
           chrome.storage.local.get(
             ["wd_gd_sync_enabled", "wd_last_sync_error"],
             function (result) {
-              chrome.browserAction.setIcon(
-                { path: "result48.png", tabId: sender.tab.id },
+              chrome.action.setIcon(
+                { path: "../assets/result48.png", tabId: sender.tab.id },
                 function () {
                   if (result.wd_gd_sync_enabled) {
                     if (result.wd_last_sync_error == null) {
-                      chrome.browserAction.setBadgeText({
+                      chrome.action.setBadgeText({
                         text: "sync",
                         tabId: sender.tab.id,
                       });
-                      chrome.browserAction.setBadgeBackgroundColor({
+                      chrome.action.setBadgeBackgroundColor({
                         color: [25, 137, 0, 255],
                         tabId: sender.tab.id,
                       });
                     } else {
-                      chrome.browserAction.setBadgeText({
+                      chrome.action.setBadgeText({
                         text: "err",
                         tabId: sender.tab.id,
                       });
-                      chrome.browserAction.setBadgeBackgroundColor({
+                      chrome.action.setBadgeBackgroundColor({
                         color: [137, 0, 0, 255],
                         tabId: sender.tab.id,
                       });
@@ -950,13 +950,13 @@ function initialize_extension() {
             },
           );
         } else if (request.wdm_verdict == "keyboard") {
-          chrome.browserAction.setIcon({
-            path: "no_dynamic.png",
+          chrome.action.setIcon({
+            path: "../assets/no_dynamic.png",
             tabId: sender.tab.id,
           });
         } else {
-          chrome.browserAction.setIcon({
-            path: "result48_gray.png",
+          chrome.action.setIcon({
+            path: "../assets/result48_gray.png",
             tabId: sender.tab.id,
           });
         }

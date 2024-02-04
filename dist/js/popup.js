@@ -215,11 +215,13 @@ let dict_size = null;
 let enabled_mode = true;
 
 function display_mode() {
+  console.log('tabs',1)
   chrome.tabs.query(
     {
       active: true,
     },
     function (tabs) {
+      console.log('tabs',tabs)
       const tab = tabs[0];
       const url = new URL(tab.url);
       const domain = url.hostname;
