@@ -16,22 +16,28 @@ function display_mode() {
       document.getElementById('addHostName').textContent = domain
       if (enabled_mode) {
         document.getElementById('rb_enabled').checked = true
-        document.getElementById('addToListLabel').textContent = chrome.i18n.getMessage('addSkippedLabel')
-        document.getElementById('addToListLabel').href = chrome.runtime.getURL('black_list.html')
+        document.getElementById('addToListLabel').textContent =
+          chrome.i18n.getMessage('addSkippedLabel')
+        document.getElementById('addToListLabel').href =
+          chrome.runtime.getURL('black_list.html')
         chrome.storage.local.get(['wd_black_list'], function (result) {
           const black_list = result.wd_black_list
-          document.getElementById('addToList').checked = black_list.hasOwnProperty(domain)
+          document.getElementById('addToList').checked =
+            black_list.hasOwnProperty(domain)
         })
       } else {
         document.getElementById('rb_disabled').checked = true
-        document.getElementById('addToListLabel').textContent = chrome.i18n.getMessage('addFavoritesLabel')
-        document.getElementById('addToListLabel').href = chrome.runtime.getURL('white_list.html')
+        document.getElementById('addToListLabel').textContent =
+          chrome.i18n.getMessage('addFavoritesLabel')
+        document.getElementById('addToListLabel').href =
+          chrome.runtime.getURL('white_list.html')
         chrome.storage.local.get(['wd_white_list'], function (result) {
           const white_list = result.wd_white_list
-          document.getElementById('addToList').checked = white_list.hasOwnProperty(domain)
+          document.getElementById('addToList').checked =
+            white_list.hasOwnProperty(domain)
         })
       }
-    }
+    },
   )
 }
 
@@ -68,21 +74,30 @@ function process_mode_switch() {
 }
 
 function process_show() {
-  chrome.tabs.create({ url: chrome.runtime.getURL('display.html') }, function (tab) {
-    // opens import dialong in new tab
-  })
+  chrome.tabs.create(
+    { url: chrome.runtime.getURL('display.html') },
+    function (tab) {
+      // opens import dialong in new tab
+    },
+  )
 }
 
 function process_help() {
-  chrome.tabs.create({ url: chrome.runtime.getURL('help.html') }, function (tab) {
-    // opens import dialong in new tab
-  })
+  chrome.tabs.create(
+    { url: chrome.runtime.getURL('help.html') },
+    function (tab) {
+      // opens import dialong in new tab
+    },
+  )
 }
 
 function process_adjust() {
-  chrome.tabs.create({ url: chrome.runtime.getURL('adjust.html') }, function (tab) {
-    // opens adjust dialong in new tab
-  })
+  chrome.tabs.create(
+    { url: chrome.runtime.getURL('adjust.html') },
+    function (tab) {
+      // opens adjust dialong in new tab
+    },
+  )
 }
 
 function display_vocabulary_size() {
@@ -98,11 +113,14 @@ function popup_handle_add_result(report, lemma) {
     request_unhighlight(lemma)
     display_vocabulary_size()
     document.getElementById('addText').value = ''
-    document.getElementById('addOpResult').textContent = chrome.i18n.getMessage('addSuccess')
+    document.getElementById('addOpResult').textContent =
+      chrome.i18n.getMessage('addSuccess')
   } else if (report === 'exists') {
-    document.getElementById('addOpResult').textContent = chrome.i18n.getMessage('addErrorDupp')
+    document.getElementById('addOpResult').textContent =
+      chrome.i18n.getMessage('addErrorDupp')
   } else {
-    document.getElementById('addOpResult').textContent = chrome.i18n.getMessage('addErrorBad')
+    document.getElementById('addOpResult').textContent =
+      chrome.i18n.getMessage('addErrorBad')
   }
 }
 
@@ -151,34 +169,51 @@ function process_rate_p10() {
 
 function init_controls() {
   window.onload = function () {
-    document.getElementById('addToList').addEventListener('click', process_checkbox)
+    document
+      .getElementById('addToList')
+      .addEventListener('click', process_checkbox)
     document.getElementById('adjust').addEventListener('click', process_adjust)
     document.getElementById('showVocab').addEventListener('click', process_show)
     document.getElementById('getHelp').addEventListener('click', process_help)
-    document.getElementById('addWord').addEventListener('click', process_add_word)
-    document.getElementById('rateM10').addEventListener('click', process_rate_m10)
+    document
+      .getElementById('addWord')
+      .addEventListener('click', process_add_word)
+    document
+      .getElementById('rateM10')
+      .addEventListener('click', process_rate_m10)
     document.getElementById('rateM1').addEventListener('click', process_rate_m1)
     document.getElementById('rateP1').addEventListener('click', process_rate_p1)
-    document.getElementById('rateP10').addEventListener('click', process_rate_p10)
-    document.getElementById('rb_enabled').addEventListener('click', process_mode_switch)
-    document.getElementById('rb_disabled').addEventListener('click', process_mode_switch)
+    document
+      .getElementById('rateP10')
+      .addEventListener('click', process_rate_p10)
+    document
+      .getElementById('rb_enabled')
+      .addEventListener('click', process_mode_switch)
+    document
+      .getElementById('rb_disabled')
+      .addEventListener('click', process_mode_switch)
 
-    document.getElementById('addText').addEventListener('keyup', function (event) {
-      event.preventDefault()
-      if (event.keyCode === 13) {
-        process_add_word()
-      }
-    })
+    document
+      .getElementById('addText')
+      .addEventListener('keyup', function (event) {
+        event.preventDefault()
+        if (event.keyCode === 13) {
+          process_add_word()
+        }
+      })
 
     display_vocabulary_size()
 
-    chrome.storage.local.get(['wd_show_percents', 'wd_is_enabled', 'wd_word_max_rank'], function (result) {
-      const show_percents = result.wd_show_percents
-      enabled_mode = result.wd_is_enabled
-      dict_size = result.wd_word_max_rank
-      display_percents(show_percents)
-      display_mode()
-    })
+    chrome.storage.local.get(
+      ['wd_show_percents', 'wd_is_enabled', 'wd_word_max_rank'],
+      function (result) {
+        const show_percents = result.wd_show_percents
+        enabled_mode = result.wd_is_enabled
+        dict_size = result.wd_word_max_rank
+        display_percents(show_percents)
+        display_mode()
+      },
+    )
   }
 }
 
