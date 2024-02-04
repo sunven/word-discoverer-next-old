@@ -24,31 +24,37 @@ function request_unhighlight(lemma) {
 }
 
 function make_id_suffix(text) {
-  var before = btoa(text)
-  var after = before.replace(/\+/g, '_').replace(/\//g, '-').replace(/=/g, '_')
+  const before = btoa(text)
+  const after = before
+    .replace(/\+/g, '_')
+    .replace(/\//g, '-')
+    .replace(/=/g, '_')
   return after
 }
 
 function sync_if_needed() {
-  var req_keys = ['wd_last_sync', 'wd_gd_sync_enabled', 'wd_last_sync_error']
+  const req_keys = ['wd_last_sync', 'wd_gd_sync_enabled', 'wd_last_sync_error']
   chrome.storage.local.get(req_keys, function (result) {
-    var wd_last_sync = result.wd_last_sync
-    var wd_gd_sync_enabled = result.wd_gd_sync_enabled
-    var wd_last_sync_error = result.wd_last_sync_error
+    const { wd_last_sync } = result
+    const { wd_gd_sync_enabled } = result
+    const { wd_last_sync_error } = result
     if (!wd_gd_sync_enabled || wd_last_sync_error != null) {
       return
     }
-    var cur_date = new Date()
-    var mins_passed = (cur_date.getTime() - wd_last_sync) / (60 * 1000)
-    var sync_period_mins = 30
+    const cur_date = new Date()
+    const mins_passed = (cur_date.getTime() - wd_last_sync) / (60 * 1000)
+    const sync_period_mins = 30
     if (mins_passed >= sync_period_mins) {
-      chrome.runtime.sendMessage({ wdm_request: 'gd_sync', interactive_mode: false })
+      chrome.runtime.sendMessage({
+        wdm_request: 'gd_sync',
+        interactive_mode: false,
+      })
     }
   })
 }
 
 function add_lexeme(lexeme, result_handler) {
-  var req_keys = [
+  const req_keys = [
     'words_discoverer_eng_dict',
     'wd_idioms',
     'wd_user_vocabulary',
@@ -56,11 +62,11 @@ function add_lexeme(lexeme, result_handler) {
     'wd_user_vocab_deleted',
   ]
   chrome.storage.local.get(req_keys, function (result) {
-    var dict_words = result.words_discoverer_eng_dict
-    var dict_idioms = result.wd_idioms
-    var user_vocabulary = result.wd_user_vocabulary
-    var wd_user_vocab_added = result.wd_user_vocab_added
-    var wd_user_vocab_deleted = result.wd_user_vocab_deleted
+    const dict_words = result.words_discoverer_eng_dict
+    const dict_idioms = result.wd_idioms
+    const user_vocabulary = result.wd_user_vocabulary
+    const { wd_user_vocab_added } = result
+    const { wd_user_vocab_deleted } = result
     if (lexeme.length > 100) {
       result_handler('bad', undefined)
       return
@@ -72,15 +78,16 @@ function add_lexeme(lexeme, result_handler) {
       return
     }
 
-    var key = lexeme
+    let key = lexeme
     if (dict_words.hasOwnProperty(lexeme)) {
-      var wf = dict_words[lexeme]
+      const wf = dict_words[lexeme]
       if (wf) {
-        key = wf[0]
+        const [first] = wf
+        key = first
       }
     } else if (dict_idioms.hasOwnProperty(lexeme)) {
-      var wf = dict_idioms[lexeme]
-      if (wf && wf != -1) {
+      const wf = dict_idioms[lexeme]
+      if (wf && wf !== -1) {
         key = wf
       }
     }
@@ -90,16 +97,16 @@ function add_lexeme(lexeme, result_handler) {
       return
     }
 
-    var new_state = { wd_user_vocabulary: user_vocabulary }
+    const new_state = { wd_user_vocabulary: user_vocabulary }
 
     user_vocabulary[key] = 1
     if (typeof wd_user_vocab_added !== 'undefined') {
       wd_user_vocab_added[key] = 1
-      new_state['wd_user_vocab_added'] = wd_user_vocab_added
+      new_state.wd_user_vocab_added = wd_user_vocab_added
     }
     if (typeof wd_user_vocab_deleted !== 'undefined') {
       delete wd_user_vocab_deleted[key]
-      new_state['wd_user_vocab_deleted'] = wd_user_vocab_deleted
+      new_state.wd_user_vocab_deleted = wd_user_vocab_deleted
     }
 
     chrome.storage.local.set(new_state, function () {
@@ -113,32 +120,33 @@ function make_hl_style(hl_params) {
   if (!hl_params.enabled) return undefined
   let result = ''
   if (hl_params.bold) result += 'font-weight:bold;'
-  if (hl_params.useBackground) result += 'background-color:' + hl_params.backgroundColor + ';'
-  if (hl_params.useColor) result += 'color:' + hl_params.color + ';'
+  if (hl_params.useBackground)
+    result += `background-color:${hl_params.backgroundColor};`
+  if (hl_params.useColor) result += `color:${hl_params.color};`
   if (!result) return undefined
   result += 'font-size:inherit;display:inline;'
   return result
 }
 
 function localizeHtmlPage() {
-  //Localize by replacing __MSG_***__ meta tags
-  var objects = document.getElementsByTagName('html')
-  for (var j = 0; j < objects.length; j++) {
-    var obj = objects[j]
-    var valStrH = obj.innerHTML.toString()
-    var valNewH = valStrH.replace(/__MSG_(\w+)__/g, function (match, v1) {
+  // Localize by replacing __MSG_***__ meta tags
+  const objects = document.getElementsByTagName('html')
+  for (let j = 0; j < objects.length; j++) {
+    const obj = objects[j]
+    const valStrH = obj.innerHTML.toString()
+    const valNewH = valStrH.replace(/__MSG_(\w+)__/g, function (match, v1) {
       return v1 ? chrome.i18n.getMessage(v1) : ''
     })
-    if (valNewH != valStrH) {
+    if (valNewH !== valStrH) {
       obj.innerHTML = valNewH
     }
   }
 }
 
-function spformat(src) {
-  var args = Array.prototype.slice.call(arguments, 1)
+function spformat(src, ...args) {
+  // const args = Array.prototype.slice.call(arguments, 1)
   return src.replace(/{(\d+)}/g, function (match, number) {
-    return typeof args[number] != 'undefined' ? args[number] : match
+    return typeof args[number] !== 'undefined' ? args[number] : match
   })
 }
 
@@ -212,119 +220,119 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const list_section_names = {
-  wd_black_list: "blackListSection",
-  wd_white_list: "whiteListSection",
-  wd_user_vocabulary: "vocabularySection",
-};
+  wd_black_list: 'blackListSection',
+  wd_white_list: 'whiteListSection',
+  wd_user_vocabulary: 'vocabularySection',
+}
 
 function process_delete_simple(list_name, key) {
   chrome.storage.local.get([list_name], function (result) {
-    const user_list = result[list_name];
-    delete user_list[key];
-    chrome.storage.local.set({ [list_name]: user_list });
-    show_user_list(list_name, user_list);
-  });
+    const user_list = result[list_name]
+    delete user_list[key]
+    chrome.storage.local.set({ [list_name]: user_list })
+    show_user_list(list_name, user_list)
+  })
 }
 
 function process_delete_vocab_entry(key) {
   chrome.storage.local.get(
-    ["wd_user_vocabulary", "wd_user_vocab_added", "wd_user_vocab_deleted"],
+    ['wd_user_vocabulary', 'wd_user_vocab_added', 'wd_user_vocab_deleted'],
     function (result) {
-      const user_vocabulary = result.wd_user_vocabulary;
-      const { wd_user_vocab_added } = result;
-      const { wd_user_vocab_deleted } = result;
-      const new_state = { wd_user_vocabulary: user_vocabulary };
-      delete user_vocabulary[key];
-      if (typeof wd_user_vocab_added !== "undefined") {
-        delete wd_user_vocab_added[key];
-        new_state.wd_user_vocab_added = wd_user_vocab_added;
+      const user_vocabulary = result.wd_user_vocabulary
+      const { wd_user_vocab_added } = result
+      const { wd_user_vocab_deleted } = result
+      const new_state = { wd_user_vocabulary: user_vocabulary }
+      delete user_vocabulary[key]
+      if (typeof wd_user_vocab_added !== 'undefined') {
+        delete wd_user_vocab_added[key]
+        new_state.wd_user_vocab_added = wd_user_vocab_added
       }
-      if (typeof wd_user_vocab_deleted !== "undefined") {
-        wd_user_vocab_deleted[key] = 1;
-        new_state.wd_user_vocab_deleted = wd_user_vocab_deleted;
+      if (typeof wd_user_vocab_deleted !== 'undefined') {
+        wd_user_vocab_deleted[key] = 1
+        new_state.wd_user_vocab_deleted = wd_user_vocab_deleted
       }
-      chrome.storage.local.set(new_state, _common_lib__WEBPACK_IMPORTED_MODULE_0__.sync_if_needed);
-      show_user_list("wd_user_vocabulary", user_vocabulary);
+      chrome.storage.local.set(new_state, _common_lib__WEBPACK_IMPORTED_MODULE_0__.sync_if_needed)
+      show_user_list('wd_user_vocabulary', user_vocabulary)
     },
-  );
+  )
 }
 
 function create_button(list_name, text) {
-  const result = document.createElement("button");
-  result.setAttribute("class", "deleteButton");
-  result.expression_text = text;
-  if (list_name === "wd_user_vocabulary") {
-    result.addEventListener("click", function () {
-      process_delete_vocab_entry(this.expression_text);
-    });
+  const result = document.createElement('button')
+  result.setAttribute('class', 'deleteButton')
+  result.expression_text = text
+  if (list_name === 'wd_user_vocabulary') {
+    result.addEventListener('click', function () {
+      process_delete_vocab_entry(this.expression_text)
+    })
   } else {
-    result.addEventListener("click", function () {
-      process_delete_simple(list_name, this.expression_text);
-    });
+    result.addEventListener('click', function () {
+      process_delete_simple(list_name, this.expression_text)
+    })
   }
-  const img = document.createElement("img");
-  img.setAttribute("src", "../assets/delete.png");
-  result.appendChild(img);
-  return result;
+  const img = document.createElement('img')
+  img.setAttribute('src', '../assets/delete.png')
+  result.appendChild(img)
+  return result
 }
 
 function create_label(text) {
-  const result = document.createElement("span");
-  result.setAttribute("class", "wordText");
-  result.textContent = text;
-  return result;
+  const result = document.createElement('span')
+  result.setAttribute('class', 'wordText')
+  result.textContent = text
+  return result
 }
 
 function show_user_list(list_name, user_list) {
-  const keys = [];
+  const keys = []
   Object.keys(user_list).forEach((key) => {
     if (user_list.hasOwnProperty(key)) {
-      keys.push(key);
+      keys.push(key)
     }
-  });
-  const section_name = list_section_names[list_name];
-  const div_element = document.getElementById(section_name);
+  })
+  const section_name = list_section_names[list_name]
+  const div_element = document.getElementById(section_name)
   while (div_element.firstChild) {
-    div_element.removeChild(div_element.firstChild);
+    div_element.removeChild(div_element.firstChild)
   }
   if (!keys.length) {
     div_element.appendChild(
-      create_label(chrome.i18n.getMessage("emptyListError")),
-    );
-    div_element.appendChild(document.createElement("br"));
-    return;
+      create_label(chrome.i18n.getMessage('emptyListError')),
+    )
+    div_element.appendChild(document.createElement('br'))
+    return
   }
   for (let i = 0; i < keys.length; i++) {
-    const key = keys[i];
+    const key = keys[i]
     if (key.indexOf("'") !== -1 || key.indexOf('"') !== -1) {
-      continue;
+      continue
     }
-    div_element.appendChild(create_button(list_name, key));
-    div_element.appendChild(create_label(key));
-    div_element.appendChild(document.createElement("br"));
+    div_element.appendChild(create_button(list_name, key))
+    div_element.appendChild(create_label(key))
+    div_element.appendChild(document.createElement('br'))
   }
 }
 
 function process_display() {
-  let list_name = "";
+  let list_name = ''
   // TODO replace this clumsy logic by adding a special "data-list-name" attribute and renaming all 3 tags to "userListSection"
-  if (document.getElementById("blackListSection")) {
-    list_name = "wd_black_list";
-  } else if (document.getElementById("whiteListSection")) {
-    list_name = "wd_white_list";
+  if (document.getElementById('blackListSection')) {
+    list_name = 'wd_black_list'
+  } else if (document.getElementById('whiteListSection')) {
+    list_name = 'wd_white_list'
   } else {
-    list_name = "wd_user_vocabulary";
+    list_name = 'wd_user_vocabulary'
   }
 
   chrome.storage.local.get([list_name], function (result) {
-    const user_list = result[list_name];
-    show_user_list(list_name, user_list);
-  });
+    const user_list = result[list_name]
+    show_user_list(list_name, user_list)
+  })
 }
 
-document.addEventListener("DOMContentLoaded", function (event) {
-  process_display();
-});
+document.addEventListener('DOMContentLoaded', function (event) {
+  process_display()
+})
 
 })();
 

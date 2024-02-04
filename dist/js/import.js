@@ -24,31 +24,37 @@ function request_unhighlight(lemma) {
 }
 
 function make_id_suffix(text) {
-  var before = btoa(text)
-  var after = before.replace(/\+/g, '_').replace(/\//g, '-').replace(/=/g, '_')
+  const before = btoa(text)
+  const after = before
+    .replace(/\+/g, '_')
+    .replace(/\//g, '-')
+    .replace(/=/g, '_')
   return after
 }
 
 function sync_if_needed() {
-  var req_keys = ['wd_last_sync', 'wd_gd_sync_enabled', 'wd_last_sync_error']
+  const req_keys = ['wd_last_sync', 'wd_gd_sync_enabled', 'wd_last_sync_error']
   chrome.storage.local.get(req_keys, function (result) {
-    var wd_last_sync = result.wd_last_sync
-    var wd_gd_sync_enabled = result.wd_gd_sync_enabled
-    var wd_last_sync_error = result.wd_last_sync_error
+    const { wd_last_sync } = result
+    const { wd_gd_sync_enabled } = result
+    const { wd_last_sync_error } = result
     if (!wd_gd_sync_enabled || wd_last_sync_error != null) {
       return
     }
-    var cur_date = new Date()
-    var mins_passed = (cur_date.getTime() - wd_last_sync) / (60 * 1000)
-    var sync_period_mins = 30
+    const cur_date = new Date()
+    const mins_passed = (cur_date.getTime() - wd_last_sync) / (60 * 1000)
+    const sync_period_mins = 30
     if (mins_passed >= sync_period_mins) {
-      chrome.runtime.sendMessage({ wdm_request: 'gd_sync', interactive_mode: false })
+      chrome.runtime.sendMessage({
+        wdm_request: 'gd_sync',
+        interactive_mode: false,
+      })
     }
   })
 }
 
 function add_lexeme(lexeme, result_handler) {
-  var req_keys = [
+  const req_keys = [
     'words_discoverer_eng_dict',
     'wd_idioms',
     'wd_user_vocabulary',
@@ -56,11 +62,11 @@ function add_lexeme(lexeme, result_handler) {
     'wd_user_vocab_deleted',
   ]
   chrome.storage.local.get(req_keys, function (result) {
-    var dict_words = result.words_discoverer_eng_dict
-    var dict_idioms = result.wd_idioms
-    var user_vocabulary = result.wd_user_vocabulary
-    var wd_user_vocab_added = result.wd_user_vocab_added
-    var wd_user_vocab_deleted = result.wd_user_vocab_deleted
+    const dict_words = result.words_discoverer_eng_dict
+    const dict_idioms = result.wd_idioms
+    const user_vocabulary = result.wd_user_vocabulary
+    const { wd_user_vocab_added } = result
+    const { wd_user_vocab_deleted } = result
     if (lexeme.length > 100) {
       result_handler('bad', undefined)
       return
@@ -72,15 +78,16 @@ function add_lexeme(lexeme, result_handler) {
       return
     }
 
-    var key = lexeme
+    let key = lexeme
     if (dict_words.hasOwnProperty(lexeme)) {
-      var wf = dict_words[lexeme]
+      const wf = dict_words[lexeme]
       if (wf) {
-        key = wf[0]
+        const [first] = wf
+        key = first
       }
     } else if (dict_idioms.hasOwnProperty(lexeme)) {
-      var wf = dict_idioms[lexeme]
-      if (wf && wf != -1) {
+      const wf = dict_idioms[lexeme]
+      if (wf && wf !== -1) {
         key = wf
       }
     }
@@ -90,16 +97,16 @@ function add_lexeme(lexeme, result_handler) {
       return
     }
 
-    var new_state = { wd_user_vocabulary: user_vocabulary }
+    const new_state = { wd_user_vocabulary: user_vocabulary }
 
     user_vocabulary[key] = 1
     if (typeof wd_user_vocab_added !== 'undefined') {
       wd_user_vocab_added[key] = 1
-      new_state['wd_user_vocab_added'] = wd_user_vocab_added
+      new_state.wd_user_vocab_added = wd_user_vocab_added
     }
     if (typeof wd_user_vocab_deleted !== 'undefined') {
       delete wd_user_vocab_deleted[key]
-      new_state['wd_user_vocab_deleted'] = wd_user_vocab_deleted
+      new_state.wd_user_vocab_deleted = wd_user_vocab_deleted
     }
 
     chrome.storage.local.set(new_state, function () {
@@ -113,32 +120,33 @@ function make_hl_style(hl_params) {
   if (!hl_params.enabled) return undefined
   let result = ''
   if (hl_params.bold) result += 'font-weight:bold;'
-  if (hl_params.useBackground) result += 'background-color:' + hl_params.backgroundColor + ';'
-  if (hl_params.useColor) result += 'color:' + hl_params.color + ';'
+  if (hl_params.useBackground)
+    result += `background-color:${hl_params.backgroundColor};`
+  if (hl_params.useColor) result += `color:${hl_params.color};`
   if (!result) return undefined
   result += 'font-size:inherit;display:inline;'
   return result
 }
 
 function localizeHtmlPage() {
-  //Localize by replacing __MSG_***__ meta tags
-  var objects = document.getElementsByTagName('html')
-  for (var j = 0; j < objects.length; j++) {
-    var obj = objects[j]
-    var valStrH = obj.innerHTML.toString()
-    var valNewH = valStrH.replace(/__MSG_(\w+)__/g, function (match, v1) {
+  // Localize by replacing __MSG_***__ meta tags
+  const objects = document.getElementsByTagName('html')
+  for (let j = 0; j < objects.length; j++) {
+    const obj = objects[j]
+    const valStrH = obj.innerHTML.toString()
+    const valNewH = valStrH.replace(/__MSG_(\w+)__/g, function (match, v1) {
       return v1 ? chrome.i18n.getMessage(v1) : ''
     })
-    if (valNewH != valStrH) {
+    if (valNewH !== valStrH) {
       obj.innerHTML = valNewH
     }
   }
 }
 
-function spformat(src) {
-  var args = Array.prototype.slice.call(arguments, 1)
+function spformat(src, ...args) {
+  // const args = Array.prototype.slice.call(arguments, 1)
   return src.replace(/{(\d+)}/g, function (match, number) {
-    return typeof args[number] != 'undefined' ? args[number] : match
+    return typeof args[number] !== 'undefined' ? args[number] : match
   })
 }
 
@@ -212,86 +220,86 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function parse_vocabulary(text) {
-  const lines = text.split("\n");
-  const found = [];
+  const lines = text.split('\n')
+  const found = []
   for (let i = 0; i < lines.length; ++i) {
-    let word = lines[i];
-    if (i + 1 === lines.length && word.length <= 1) break;
-    if (word.slice(-1) === "\r") {
-      word = word.slice(0, -1);
+    let word = lines[i]
+    if (i + 1 === lines.length && word.length <= 1) break
+    if (word.slice(-1) === '\r') {
+      word = word.slice(0, -1)
     }
-    found.push(word);
+    found.push(word)
   }
-  return found;
+  return found
 }
 
 function add_new_words(new_words) {
   chrome.storage.local.get(
-    ["wd_user_vocabulary", "wd_user_vocab_added", "wd_user_vocab_deleted"],
+    ['wd_user_vocabulary', 'wd_user_vocab_added', 'wd_user_vocab_deleted'],
     function (result) {
-      const user_vocabulary = result.wd_user_vocabulary;
-      const { wd_user_vocab_added } = result;
-      const { wd_user_vocab_deleted } = result;
-      let num_added = 0;
-      const new_state = { wd_user_vocabulary: user_vocabulary };
+      const user_vocabulary = result.wd_user_vocabulary
+      const { wd_user_vocab_added } = result
+      const { wd_user_vocab_deleted } = result
+      let num_added = 0
+      const new_state = { wd_user_vocabulary: user_vocabulary }
       for (let i = 0; i < new_words.length; ++i) {
-        const word = new_words[i];
+        const word = new_words[i]
         if (!user_vocabulary.hasOwnProperty(word)) {
-          user_vocabulary[word] = 1;
-          ++num_added;
-          if (typeof wd_user_vocab_added !== "undefined") {
-            wd_user_vocab_added[word] = 1;
-            new_state.wd_user_vocab_added = wd_user_vocab_added;
+          user_vocabulary[word] = 1
+          ++num_added
+          if (typeof wd_user_vocab_added !== 'undefined') {
+            wd_user_vocab_added[word] = 1
+            new_state.wd_user_vocab_added = wd_user_vocab_added
           }
-          if (typeof wd_user_vocab_deleted !== "undefined") {
-            delete wd_user_vocab_deleted[word];
-            new_state.wd_user_vocab_deleted = wd_user_vocab_deleted;
+          if (typeof wd_user_vocab_deleted !== 'undefined') {
+            delete wd_user_vocab_deleted[word]
+            new_state.wd_user_vocab_deleted = wd_user_vocab_deleted
           }
         }
       }
       if (num_added) {
-        chrome.storage.local.set(new_state, _common_lib__WEBPACK_IMPORTED_MODULE_0__.sync_if_needed);
+        chrome.storage.local.set(new_state, _common_lib__WEBPACK_IMPORTED_MODULE_0__.sync_if_needed)
       }
-      const num_skipped = new_words.length - num_added;
-      document.getElementById("addedInfo").textContent =
-        `Added ${num_added} new words.`;
-      document.getElementById("skippedInfo").textContent =
-        `Skipped ${num_skipped} existing words.`;
+      const num_skipped = new_words.length - num_added
+      document.getElementById('addedInfo').textContent =
+        `Added ${num_added} new words.`
+      document.getElementById('skippedInfo').textContent =
+        `Skipped ${num_skipped} existing words.`
     },
-  );
+  )
 }
 
 function process_change() {
-  const inputElem = document.getElementById("doLoadVocab");
-  const baseName = inputElem.files[0].name;
-  document.getElementById("fnamePreview").textContent = baseName;
+  const inputElem = document.getElementById('doLoadVocab')
+  const baseName = inputElem.files[0].name
+  document.getElementById('fnamePreview').textContent = baseName
 }
 
 function process_submit() {
   // TODO add a radio button with two options: 1. merge vocabulary [default]; 2. replace vocabulary
-  const inputElem = document.getElementById("doLoadVocab");
-  const file = inputElem.files[0];
-  const reader = new FileReader();
+  const inputElem = document.getElementById('doLoadVocab')
+  const file = inputElem.files[0]
+  const reader = new FileReader()
   reader.onload = function (e) {
-    const new_words = parse_vocabulary(reader.result);
-    add_new_words(new_words);
-  };
-  reader.readAsText(file);
+    const new_words = parse_vocabulary(reader.result)
+    add_new_words(new_words)
+  }
+  reader.readAsText(file)
 }
 
 function init_controls() {
   window.onload = function () {
-    (0,_common_lib__WEBPACK_IMPORTED_MODULE_0__.localizeHtmlPage)();
+    (0,_common_lib__WEBPACK_IMPORTED_MODULE_0__.localizeHtmlPage)()
     document
-      .getElementById("vocabSubmit")
-      .addEventListener("click", process_submit);
+      .getElementById('vocabSubmit')
+      .addEventListener('click', process_submit)
     document
-      .getElementById("doLoadVocab")
-      .addEventListener("change", process_change);
-  };
+      .getElementById('doLoadVocab')
+      .addEventListener('change', process_change)
+  }
 }
 
-init_controls();
+init_controls()
 
 })();
 

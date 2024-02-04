@@ -17,10 +17,18 @@
     "no-alert": 0,
     "no-console": 0,
     "no-continue": 0,
+    "no-cond-assign": ["error", "except-parens"],
     "no-use-before-define": [
       "error",
       {
         "functions": false
+      }
+    ],
+    "prefer-destructuring": [
+      "error",
+      {
+        "array": false,
+        "object": false
       }
     ]
   }

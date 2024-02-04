@@ -182,7 +182,7 @@ export function get_dict_definition_url(dictUrl, text) {
 }
 
 export function showDefinition(dictUrl, text) {
-  var fullUrl = get_dict_definition_url(dictUrl, text)
+  const fullUrl = get_dict_definition_url(dictUrl, text)
   chrome.tabs.create({ url: fullUrl }, function (tab) {
     // opens definition in a new tab
   })
@@ -190,7 +190,7 @@ export function showDefinition(dictUrl, text) {
 
 export function createDictionaryEntry(title, dictUrl, entryId) {
   chrome.contextMenus.create({
-    title: title,
+    title,
     contexts: ['selection'],
     id: entryId,
     // onclick: function (info, tab) {
@@ -199,7 +199,7 @@ export function createDictionaryEntry(title, dictUrl, entryId) {
     // },
   })
   chrome.contextMenus.onClicked.addListener(function (info, tab) {
-    var word = info.selectionText
+    const word = info.selectionText
     showDefinition(dictUrl, word)
   })
 }
@@ -211,41 +211,58 @@ export function context_handle_add_result(report, lemma) {
 }
 
 export function onClickHandler(info, tab) {
-  var word = info.selectionText
+  const word = info.selectionText
   add_lexeme(word, context_handle_add_result)
 }
 
 export function make_default_online_dicts() {
   const result = []
 
-  var uiLang = chrome.i18n.getUILanguage()
+  let uiLang = chrome.i18n.getUILanguage()
   uiLang = uiLang.split('-')[0]
-  if (uiLang != 'en' && isoLangs.hasOwnProperty(uiLang)) {
-    var langName = isoLangs[uiLang]
+  if (uiLang !== 'en' && isoLangs.hasOwnProperty(uiLang)) {
+    const langName = isoLangs[uiLang]
     result.push({
-      title: 'Translate to ' + langName + ' in Google',
-      url: 'https://translate.google.com/#en/' + uiLang + '/',
+      title: `Translate to ${langName} in Google`,
+      url: `https://translate.google.com/#en/${uiLang}/`,
     })
   }
-  result.push({ title: 'Define in Merriam-Webster', url: 'https://www.merriam-webster.com/dictionary/' })
-  result.push({ title: 'Define in Google', url: 'https://encrypted.google.com/search?hl=en&gl=en&q=define:' })
-  result.push({ title: 'View pictures in Google', url: 'https://encrypted.google.com/search?hl=en&gl=en&tbm=isch&q=' })
+  result.push({
+    title: 'Define in Merriam-Webster',
+    url: 'https://www.merriam-webster.com/dictionary/',
+  })
+  result.push({
+    title: 'Define in Google',
+    url: 'https://encrypted.google.com/search?hl=en&gl=en&q=define:',
+  })
+  result.push({
+    title: 'View pictures in Google',
+    url: 'https://encrypted.google.com/search?hl=en&gl=en&tbm=isch&q=',
+  })
   return result
 }
 
 export function initContextMenus(dictPairs) {
   chrome.contextMenus.removeAll(function () {
-    var title = chrome.i18n.getMessage('menuItem')
+    const title = chrome.i18n.getMessage('menuItem')
     chrome.contextMenus.create({
-      title: title,
+      title,
       contexts: ['selection'],
       id: 'vocab_select_add',
       // onclick: onClickHandler,
     })
     chrome.contextMenus.onClicked.addListener(onClickHandler)
-    chrome.contextMenus.create({ type: 'separator', contexts: ['selection'], id: 'wd_separator_id' })
-    for (var i = 0; i < dictPairs.length; ++i) {
-      createDictionaryEntry(dictPairs[i].title, dictPairs[i].url, 'wd_define_' + i)
+    chrome.contextMenus.create({
+      type: 'separator',
+      contexts: ['selection'],
+      id: 'wd_separator_id',
+    })
+    for (let i = 0; i < dictPairs.length; ++i) {
+      createDictionaryEntry(
+        dictPairs[i].title,
+        dictPairs[i].url,
+        `wd_define_${i}`,
+      )
     }
   })
 }

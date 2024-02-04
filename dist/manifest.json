@@ -16,13 +16,22 @@
     }
   },
   "author": "Dmitry Ignatovich",
-  "permissions": ["storage", "unlimitedStorage", "contextMenus", "tts", "identity", "tabs"],
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "contextMenus",
+    "tts",
+    "identity",
+    "tabs"
+  ],
   // "optional_permissions": ["https://*/*"],
   "background": {
     "service_worker": "js/background.js"
     // "type": "module"
   },
-  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'self'" },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; default-src 'self' *.trusted.com"
+  },
   "oauth2": {
     "client_id": "1093363650045-qndvaqnh5ma7mabluj3arkmta53lubo5.apps.googleusercontent.com",
     "scopes": ["https://www.googleapis.com/auth/drive.file"]

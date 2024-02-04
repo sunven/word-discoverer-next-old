@@ -14,10 +14,10 @@ let wd_enable_tts = null
 
 let disable_by_keypress = false
 
-const current_lexeme = ''
+let current_lexeme = ''
 let cur_wd_node_id = 1
 
-const word_re = new RegExp('^[a-z][a-z]*$')
+const word_re = /^[a-z][a-z]*$/
 
 let function_key_is_pressed = false
 let rendered_node_id = null
@@ -38,7 +38,9 @@ function get_rare_lemma(word) {
   }
   if (!wf || wf[1] < min_show_rank) return undefined
   const lemma = wf[0]
-  return !user_vocabulary || !user_vocabulary.hasOwnProperty(lemma) ? lemma : undefined
+  return !user_vocabulary || !user_vocabulary.hasOwnProperty(lemma)
+    ? lemma
+    : undefined
 }
 
 function get_word_percentile(word) {
@@ -77,10 +79,13 @@ function renderBubble() {
   if (!node_to_render) return
 
   const classattr = node_to_render.getAttribute('class')
-  const is_highlighted = classattr != 'wdautohl_none_none'
+  const is_highlighted = classattr !== 'wdautohl_none_none'
   const param_key = is_highlighted ? 'hl_hover' : 'ow_hover'
   const param_value = wd_hover_settings[param_key]
-  if (param_value == 'never' || (param_value == 'key' && !function_key_is_pressed)) {
+  if (
+    param_value === 'never' ||
+    (param_value === 'key' && !function_key_is_pressed)
+  ) {
     return
   }
 
@@ -94,7 +99,7 @@ function renderBubble() {
   const prcntFreq = get_word_percentile(wdSpanText.toLowerCase())
   bubbleFreq.textContent = prcntFreq ? `${prcntFreq}%` : 'n/a'
   bubbleFreq.style.backgroundColor = getHeatColorPoint(prcntFreq)
-  const current_lexeme = wdSpanText
+  current_lexeme = wdSpanText
   const bcr = node_to_render.getBoundingClientRect()
   bubbleDOM.style.top = `${bcr.bottom}px`
   bubbleDOM.style.left = `${Math.max(5, Math.floor((bcr.left + bcr.right) / 2) - 100)}px`
@@ -108,7 +113,10 @@ function renderBubble() {
 
 function hideBubble(force) {
   const bubbleDOM = document.getElementById('wd_selection_bubble')
-  if (force || (!bubbleDOM.wdMouseOn && node_to_render_id != rendered_node_id)) {
+  if (
+    force ||
+    (!bubbleDOM.wdMouseOn && node_to_render_id !== rendered_node_id)
+  ) {
     bubbleDOM.style.display = 'none'
     rendered_node_id = null
   }
@@ -146,8 +154,11 @@ function processMouse(e) {
 
 function text_to_hl_nodes(text, dst) {
   const lc_text = text.toLowerCase()
-  var ws_text = lc_text.replace(/[,;()?!`:"'.\s\-\u2013\u2014\u201C\u201D\u2019]/g, ' ')
-  var ws_text = ws_text.replace(/[^\w ]/g, '.')
+  let ws_text = lc_text.replace(
+    /[,;()?!`:"'.\s\-\u2013\u2014\u201C\u201D\u2019]/g,
+    ' ',
+  )
+  ws_text = ws_text.replace(/[^\w ]/g, '.')
 
   const tokens = ws_text.split(' ')
 
@@ -158,7 +169,7 @@ function text_to_hl_nodes(text, dst) {
 
   const matches = []
 
-  const tokenize_other = wd_hover_settings.ow_hover != 'never'
+  const tokenize_other = wd_hover_settings.ow_hover !== 'never'
 
   while (wnum < tokens.length) {
     if (!tokens[wnum].length) {
@@ -167,7 +178,7 @@ function text_to_hl_nodes(text, dst) {
       continue
     }
     num_nonempty += 1
-    var match = undefined
+    let match
     if (!match && wd_hl_settings.idiomParams.enabled) {
       let lwnum = wnum // look ahead word number
       let libegin = ibegin // look ahead word begin
@@ -183,7 +194,7 @@ function text_to_hl_nodes(text, dst) {
           mwe_prefix += ' '
           libegin += tokens[lwnum].length + 1
           lwnum += 1
-        } else if (wf && wf != -1 && (!libegin || text[libegin - 1] === ' ')) {
+        } else if (wf && wf !== -1 && (!libegin || text[libegin - 1] === ' ')) {
           // idiom found
           if (user_vocabulary && user_vocabulary.hasOwnProperty(wf)) break
           match = {
@@ -215,7 +226,12 @@ function text_to_hl_nodes(text, dst) {
         num_good += 1
       }
     }
-    if (tokenize_other && !match && tokens[wnum].length >= 3 && word_re.test(tokens[wnum])) {
+    if (
+      tokenize_other &&
+      !match &&
+      tokens[wnum].length >= 3 &&
+      word_re.test(tokens[wnum])
+    ) {
       match = {
         normalized: null,
         kind: 'word',
@@ -244,7 +260,7 @@ function text_to_hl_nodes(text, dst) {
   let insert_count = 0
   for (let i = 0; i < matches.length; i++) {
     let text_style
-    match = matches[i]
+    const match = matches[i]
     if (match.kind === 'lemma') {
       const hlParams = wd_hl_settings.wordParams
       text_style = make_hl_style(hlParams)
@@ -252,12 +268,15 @@ function text_to_hl_nodes(text, dst) {
       const hlParams = wd_hl_settings.idiomParams
       text_style = make_hl_style(hlParams)
     } else if (match.kind === 'word') {
-      text_style = 'font:inherit;display:inline;color:inherit;background-color:inherit;'
+      text_style =
+        'font:inherit;display:inline;color:inherit;background-color:inherit;'
     }
     if (text_style) {
       insert_count += 1
       if (last_hl_end_pos < match.begin) {
-        dst.push(document.createTextNode(text.slice(last_hl_end_pos, match.begin)))
+        dst.push(
+          document.createTextNode(text.slice(last_hl_end_pos, match.begin)),
+        )
       }
       last_hl_end_pos = match.end
       // span = document.createElement("span");
@@ -279,17 +298,37 @@ function text_to_hl_nodes(text, dst) {
   return insert_count
 }
 
-const good_tags_list = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'B', 'SMALL', 'STRONG', 'Q', 'DIV', 'SPAN']
+const good_tags_list = [
+  'P',
+  'H1',
+  'H2',
+  'H3',
+  'H4',
+  'H5',
+  'H6',
+  'B',
+  'SMALL',
+  'STRONG',
+  'Q',
+  'DIV',
+  'SPAN',
+]
 
 function mygoodfilter(node) {
-  if (good_tags_list.indexOf(node.parentNode.tagName) !== -1) return NodeFilter.FILTER_ACCEPT
+  if (good_tags_list.indexOf(node.parentNode.tagName) !== -1)
+    return NodeFilter.FILTER_ACCEPT
   return NodeFilter.FILTER_SKIP
 }
 
 function textNodesUnder(el) {
   let n
   const a = []
-  const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, mygoodfilter, false)
+  const walk = document.createTreeWalker(
+    el,
+    NodeFilter.SHOW_TEXT,
+    mygoodfilter,
+    false,
+  )
   while ((n = walk.nextNode())) {
     a.push(n)
   }
@@ -357,13 +396,13 @@ function unhighlight(lemma) {
     const span = hlNodes[0]
     span.setAttribute(
       'style',
-      'font-weight:inherit;color:inherit;font-size:inherit;background-color:inherit;display:inline;'
+      'font-weight:inherit;color:inherit;font-size:inherit;background-color:inherit;display:inline;',
     )
     span.setAttribute('class', 'wdautohl_none_none')
   }
 }
 
-function get_verdict(is_enabled, black_list, white_list, callback_func) {
+function get_verdict(isEnabled, black_list, white_list, callback_func) {
   chrome.runtime.sendMessage({ wdm_request: 'hostname' }, function (response) {
     if (!response) {
       callback_func('unknown error')
@@ -378,17 +417,24 @@ function get_verdict(is_enabled, black_list, white_list, callback_func) {
       callback_func('highlight')
       return
     }
-    if (!is_enabled) {
+    if (!isEnabled) {
       callback_func('site is not in "Favorites List"')
       return
     }
-    chrome.runtime.sendMessage({ wdm_request: 'page_language' }, function (lang_response) {
-      if (!lang_response) {
-        callback_func('unknown error')
-        return
-      }
-      callback_func(lang_response.wdm_iso_language_code == 'en' ? 'highlight' : 'page language is not English')
-    })
+    chrome.runtime.sendMessage(
+      { wdm_request: 'page_language' },
+      function (lang_response) {
+        if (!lang_response) {
+          callback_func('unknown error')
+          return
+        }
+        callback_func(
+          lang_response.wdm_iso_language_code === 'en'
+            ? 'highlight'
+            : 'page language is not English',
+        )
+      },
+    )
   })
 }
 
@@ -472,12 +518,14 @@ function create_bubble() {
 function initForPage() {
   if (!document.body) return
 
-  chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    if (request.wdm_unhighlight) {
-      const lemma = request.wdm_unhighlight
-      unhighlight(lemma)
-    }
-  })
+  chrome.runtime.onMessage.addListener(
+    function (request, sender, sendResponse) {
+      if (request.wdm_unhighlight) {
+        const lemma = request.wdm_unhighlight
+        unhighlight(lemma)
+      }
+    },
+  )
 
   chrome.storage.local.get(
     [
@@ -514,13 +562,13 @@ function initForPage() {
         if (verdict !== 'highlight') return
 
         document.addEventListener('keydown', function (event) {
-          if (event.keyCode == 17) {
+          if (event.keyCode === 17) {
             function_key_is_pressed = true
             renderBubble()
             return
           }
           const elementTagName = event.target.tagName
-          if (!disable_by_keypress && elementTagName != 'BODY') {
+          if (!disable_by_keypress && elementTagName !== 'BODY') {
             // 例如新建issue，写md，然后预览会触发
             // workaround to prevent highlighting in facebook messages
             // this logic can also be helpful in other situations, it's better play safe and stop highlighting when user enters data.
@@ -543,17 +591,16 @@ function initForPage() {
         document.addEventListener('mousedown', hideBubble(true), false)
         document.addEventListener('mousemove', processMouse, false)
         // document.addEventListener("DOMNodeInserted", onNodeInserted, false);
-        new MutationObserver((mutationList,observer) => {
+        new MutationObserver((mutationList, observer) => {
           mutationList.forEach(onNodeInserted)
         }).observe(document, { subtree: true, childList: true })
 
-        container.insertAdjacentHTML('beforeend', 'content')
         window.addEventListener('scroll', function () {
           node_to_render_id = null
           hideBubble(true)
         })
       })
-    }
+    },
   )
 }
 
