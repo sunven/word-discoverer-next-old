@@ -14,6 +14,18 @@ module.exports = {
     background: path.join(srcDir, 'background.js'),
     content: path.join(srcDir, 'content_script.js'),
   },
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
+    ],
+  },
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js'],
+  },
   output: {
     path: path.join(__dirname, './dist/js'),
     filename: '[name].js',

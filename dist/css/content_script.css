@@ -1,7 +1,7 @@
 .wdAddButton {
-  width: 100% !important;
+  /* width: 100% !important;
   min-width: 100% !important;
-  max-width: 100% !important;
+  max-width: 100% !important; */
   height: 20px !important;
   min-height: 20px !important;
   max-height: 20px !important;
@@ -30,7 +30,6 @@
   border-radius: 0px !important;
   border-style: none !important;
   border-width: 0px !important;
-  vertical-align: baseline !important;
 }
 .wdAddButton:hover {
   background-color: #102310 !important;
@@ -122,4 +121,27 @@
   font-style: normal !important;
   font-variant: normal !important;
   line-height: 65% !important;
+}
+#wdn_translate_bing {
+  padding: 12px;
+  width: 400px;
+  font-size: 14px;
+  color: #000;
+  > div {
+    line-height: 28px;
+    > span {
+      display: inline-block;
+      width: 48px;
+      margin-right: 8px;
+      background-color: cadetblue;
+    }
+  }
+}
+.addAndAudioWrap {
+  display: flex;
+  margin-top: 18px;
+  padding: 12px;
+  > button {
+    flex: 1;
+  }
 }

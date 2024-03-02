@@ -1,4 +1,5 @@
 import { make_id_suffix, add_lexeme, make_hl_style } from './common_lib'
+import { handleLexResult } from './utils/bing'
 
 let dict_words = null
 let dict_idioms = null
@@ -93,8 +94,33 @@ function renderBubble() {
   const bubbleDOM = document.getElementById('wd_selection_bubble')
   const bubbleText = document.getElementById('wd_selection_bubble_text')
   const bubbleFreq = document.getElementById('wd_selection_bubble_freq')
-  const iframe = document.getElementById('wd_iframe_bing')
-  iframe.src = `https://cn.bing.com/dict/clientsearch?mkt=zh-CN&setLang=zh&form=BDVEHC&ClientVer=BDDTV3.5.1.4320&q=${wdSpanText}`
+  chrome.runtime.sendMessage(
+    {
+      type: 'fetch',
+      q: wdSpanText,
+    },
+    (res) => {
+      const doc = new DOMParser().parseFromString(res, 'text/html')
+      console.log(doc)
+      if (doc.querySelector('.client_def_hd_hd')) {
+        const { audio, result } = handleLexResult(
+          doc,
+          {
+            tense: true,
+            phsym: true,
+            cdef: true,
+            related: true,
+            sentence: 4,
+          },
+          null,
+        )
+        const wdnTranslateBingDom =
+          document.getElementById('wdn_translate_bing')
+        wdnTranslateBingDom.innerHTML = `<div>${result.cdef.map((c) => `<span>${c.pos}</span>${c.def}`).join('<br />')}</div>`
+      }
+    },
+  )
+
   bubbleText.textContent = limit_text_len(wdSpanText)
   const prcntFreq = get_word_percentile(wdSpanText.toLowerCase())
   bubbleFreq.textContent = prcntFreq ? `${prcntFreq}%` : 'n/a'
@@ -464,6 +490,10 @@ function create_bubble() {
   freqSpan.textContent = 'n/a'
   bubbleDOM.appendChild(freqSpan)
 
+  const addAndAudioWrapDom = document.createElement('div')
+  addAndAudioWrapDom.setAttribute('class', 'addAndAudioWrap')
+  bubbleDOM.appendChild(addAndAudioWrapDom)
+
   const addButton = document.createElement('button')
   addButton.setAttribute('class', 'wdAddButton')
   addButton.textContent = chrome.i18n.getMessage('menuItem')
@@ -471,7 +501,7 @@ function create_bubble() {
   addButton.addEventListener('click', function () {
     add_lexeme(current_lexeme, bubble_handle_add_result)
   })
-  bubbleDOM.appendChild(addButton)
+  addAndAudioWrapDom.appendChild(addButton)
 
   const speakButton = document.createElement('button')
   speakButton.setAttribute('class', 'wdAddButton')
@@ -480,7 +510,7 @@ function create_bubble() {
   speakButton.addEventListener('click', function () {
     bubble_handle_tts(current_lexeme)
   })
-  bubbleDOM.appendChild(speakButton)
+  addAndAudioWrapDom.appendChild(speakButton)
 
   // dictPairs = makeDictionaryPairs();
   //   var dictPairs = wd_online_dicts
@@ -498,11 +528,9 @@ function create_bubble() {
   //     bubbleDOM.appendChild(dictButton)
   //   }
 
-  const iframe = document.createElement('iframe')
-  iframe.id = 'wd_iframe_bing'
-  iframe.width = '400px'
-  iframe.height = '400px'
-  bubbleDOM.appendChild(iframe)
+  const div = document.createElement('div')
+  div.id = 'wdn_translate_bing'
+  bubbleDOM.appendChild(div)
 
   bubbleDOM.addEventListener('mouseleave', function (e) {
     bubbleDOM.wdMouseOn = false

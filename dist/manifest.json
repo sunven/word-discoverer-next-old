@@ -29,8 +29,9 @@
     "service_worker": "js/background.js"
     // "type": "module"
   },
+  "host_permissions": ["<all_urls>"],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; default-src 'self' *.trusted.com"
+    "extension_pages": "script-src 'self'; object-src 'self'"
   },
   "oauth2": {
     "client_id": "1093363650045-qndvaqnh5ma7mabluj3arkmta53lubo5.apps.googleusercontent.com",

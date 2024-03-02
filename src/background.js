@@ -439,6 +439,15 @@ function start_sync_sequence(interactive_authorization) {
 function initialize_extension() {
   chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
+      if (request.type === 'fetch') {
+        console.log('request', request)
+        fetch(
+          `https://cn.bing.com/dict/clientsearch?mkt=zh-CN&setLang=zh&form=BDVEHC&ClientVer=BDDTV3.5.1.4320&q=${request.q}`,
+        )
+          .then((response) => response.text())
+          .then(sendResponse)
+        return true // Will respond asynchronously.
+      }
       if (request.wdm_request === 'hostname') {
         const tab_url = sender.tab.url
         const url = new URL(tab_url)
