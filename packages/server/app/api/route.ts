@@ -21,7 +21,7 @@ type MovieSummary = Pick<Movie, 'title' | 'imdb'>
 export async function GET(request: Request) {
   let client
   try {
-    client = new MongoClient(process.env.MONGODB_URI)
+    client = new MongoClient(process.env.MONGODB_URI as string)
     const database = client.db('sample_mflix')
     // Specifying a Schema is always optional, but it enables type hinting on
     // finds and inserts
