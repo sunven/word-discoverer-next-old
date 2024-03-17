@@ -9,6 +9,7 @@
     "48": "assets/result48.png",
     "128": "assets/icon_128.png"
   },
+  "options_page": "options.html",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

@@ -13,6 +13,7 @@ module.exports = {
     adjust: path.join(srcDir, 'adjust.js'),
     background: path.join(srcDir, 'background.js'),
     content: path.join(srcDir, 'content_script.js'),
+    options: path.join(srcDir, 'options.tsx'),
   },
   module: {
     rules: [

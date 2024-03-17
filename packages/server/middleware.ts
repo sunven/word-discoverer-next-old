@@ -1,3 +1,3 @@
 import { authMiddleware } from '@clerk/nextjs'
 
-export default authMiddleware({ debug: true })
+export default authMiddleware({ debug: false })
