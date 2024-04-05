@@ -2235,6 +2235,11 @@ function process_hl_leave() {
   }, 100)
 }
 
+/**
+ * 处理鼠标事件
+ *
+ * @param e 鼠标事件对象
+ */
 function processMouse(e) {
   const hitNode = document.elementFromPoint(e.clientX, e.clientY)
   if (!hitNode) {
