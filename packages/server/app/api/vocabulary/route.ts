@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { MongoClient, type Document } from 'mongodb'
-import { useUser } from '@clerk/nextjs'
+import { auth } from '@clerk/nextjs'
 
 type VocabularyType = {
   userId: string
@@ -20,12 +20,6 @@ function getCollection<T extends Document>(collectionName: string) {
   return { client, collection }
 }
 
-function getUserId() {
-  // const { user } = useUser()
-  // return user?.id
-  return 'user_2dlurbjTBOMfILKKQQzFPnhPenI'
-}
-
 /**
  * 获取词汇信息
  *
@@ -33,17 +27,22 @@ function getUserId() {
  * @returns 返回词汇信息的 JSON 格式响应
  */
 export async function GET(request: Request) {
-  const userId = getUserId()
+  const { userId } = auth()
+  if (!userId) {
+    return
+  }
   const { client, collection } = getCollection<VocabularyType>('vocabulary')
   const vocabulary = await collection.findOne<VocabularyType>({ userId })
-  console.log(vocabulary)
   client.close()
   return NextResponse.json(vocabulary)
 }
 
 export async function POST(request: Request) {
+  const { userId } = auth()
+  if (!userId) {
+    return
+  }
   const res = (await request.json()) as string[]
-  const userId = 'user_2dlurbjTBOMfILKKQQzFPnhPenI'
   const { client, collection } = getCollection<VocabularyType>('vocabulary')
   const vocabulary = await collection.findOne<VocabularyType>({ userId })
   let task

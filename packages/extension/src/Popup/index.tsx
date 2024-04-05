@@ -207,7 +207,7 @@ function init_controls() {
     .addEventListener('click', process_checkbox)
   document.getElementById('adjust').addEventListener('click', process_adjust)
   document.getElementById('showVocab').addEventListener('click', process_show)
-  document.getElementById('getHelp').addEventListener('click', process_help)
+  // document.getElementById('getHelp1').addEventListener('click', process_help)
   document.getElementById('addWord').addEventListener('click', process_add_word)
   document.getElementById('rateM10').addEventListener('click', process_rate_m10)
   document.getElementById('rateM1').addEventListener('click', process_rate_m1)
@@ -249,10 +249,19 @@ function init_controls() {
 // })
 
 function Popup() {
+  const { getToken } = useAuth()
   useEffect(() => {
-    localizeHtmlPage()
+    // localizeHtmlPage()
     init_controls()
   }, [])
+  const handleClick = async () => {
+    const token = await getToken()
+    fetch('http://localhost:3000/api/vocabulary', {
+      headers: {
+        Authorization: token,
+      },
+    }).then(res=>res.json()).then(console.log)
+  }
   return (
     <>
       <fieldset>
@@ -345,7 +354,7 @@ function Popup() {
         <button className="vocabButton" id="adjust">
           __MSG_adjust__
         </button>
-        <button className="helpButton" id="getHelp">
+        <button className="helpButton" id="getHelp1" onClick={handleClick}>
           ?
         </button>
       </fieldset>
@@ -364,7 +373,7 @@ function PopupWrap() {
         chrome.tabs.create({ url: chrome.runtime.getURL('login.html') })
       }}
     >
-      登录
+      登录44
     </button>
   )
 }
