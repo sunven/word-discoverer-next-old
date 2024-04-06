@@ -38732,7 +38732,7 @@ function make_id_suffix(text) {
 
 function sync_if_needed() {
   const req_keys = ['wd_last_sync', 'wd_gd_sync_enabled', 'wd_last_sync_error']
-  chrome.storage.local.get(req_keys, function (result) {
+  chrome.storage.sync.get(req_keys, function (result) {
     const { wd_last_sync } = result
     const { wd_gd_sync_enabled } = result
     const { wd_last_sync_error } = result
@@ -38753,64 +38753,68 @@ function sync_if_needed() {
 
 function add_lexeme(lexeme, result_handler) {
   const req_keys = [
-    'words_discoverer_eng_dict',
-    'wd_idioms',
     'wd_user_vocabulary',
     'wd_user_vocab_added',
     'wd_user_vocab_deleted',
   ]
-  chrome.storage.local.get(req_keys, function (result) {
-    const dict_words = result.words_discoverer_eng_dict
-    const dict_idioms = result.wd_idioms
+  chrome.storage.sync.get(req_keys, function (result) {
     const user_vocabulary = result.wd_user_vocabulary
     const { wd_user_vocab_added } = result
     const { wd_user_vocab_deleted } = result
-    if (lexeme.length > 100) {
-      result_handler('bad', undefined)
-      return
-    }
-    lexeme = lexeme.toLowerCase()
-    lexeme = lexeme.trim()
-    if (!lexeme) {
-      result_handler('bad', undefined)
-      return
-    }
+    chrome.storage.local.get(
+      ['words_discoverer_eng_dict', 'wd_idioms'],
+      function (result1) {
+        const dict_words = result1.words_discoverer_eng_dict
+        const dict_idioms = result1.wd_idioms
 
-    let key = lexeme
-    if (dict_words.hasOwnProperty(lexeme)) {
-      const wf = dict_words[lexeme]
-      if (wf) {
-        const [first] = wf
-        key = first
-      }
-    } else if (dict_idioms.hasOwnProperty(lexeme)) {
-      const wf = dict_idioms[lexeme]
-      if (wf && wf !== -1) {
-        key = wf
-      }
-    }
+        if (lexeme.length > 100) {
+          result_handler('bad', undefined)
+          return
+        }
+        lexeme = lexeme.toLowerCase()
+        lexeme = lexeme.trim()
+        if (!lexeme) {
+          result_handler('bad', undefined)
+          return
+        }
 
-    if (user_vocabulary.hasOwnProperty(key)) {
-      result_handler('exists', key)
-      return
-    }
+        let key = lexeme
+        if (dict_words.hasOwnProperty(lexeme)) {
+          const wf = dict_words[lexeme]
+          if (wf) {
+            const [first] = wf
+            key = first
+          }
+        } else if (dict_idioms.hasOwnProperty(lexeme)) {
+          const wf = dict_idioms[lexeme]
+          if (wf && wf !== -1) {
+            key = wf
+          }
+        }
 
-    const new_state = { wd_user_vocabulary: user_vocabulary }
+        if (user_vocabulary.hasOwnProperty(key)) {
+          result_handler('exists', key)
+          return
+        }
 
-    user_vocabulary[key] = 1
-    if (typeof wd_user_vocab_added !== 'undefined') {
-      wd_user_vocab_added[key] = 1
-      new_state.wd_user_vocab_added = wd_user_vocab_added
-    }
-    if (typeof wd_user_vocab_deleted !== 'undefined') {
-      delete wd_user_vocab_deleted[key]
-      new_state.wd_user_vocab_deleted = wd_user_vocab_deleted
-    }
+        const new_state = { wd_user_vocabulary: user_vocabulary }
 
-    chrome.storage.local.set(new_state, function () {
-      sync_if_needed()
-      result_handler('ok', key)
-    })
+        user_vocabulary[key] = 1
+        if (typeof wd_user_vocab_added !== 'undefined') {
+          wd_user_vocab_added[key] = 1
+          new_state.wd_user_vocab_added = wd_user_vocab_added
+        }
+        if (typeof wd_user_vocab_deleted !== 'undefined') {
+          delete wd_user_vocab_deleted[key]
+          new_state.wd_user_vocab_deleted = wd_user_vocab_deleted
+        }
+
+        chrome.storage.sync.set(new_state, function () {
+          sync_if_needed()
+          result_handler('ok', key)
+        })
+      },
+    )
   })
 }
 
@@ -43167,7 +43171,7 @@ function display_mode() {
             addToListLabelElem.textContent =
                 chrome.i18n.getMessage('addSkippedLabel');
             addToListLabelElem.href = chrome.runtime.getURL('black_list.html');
-            chrome.storage.local.get(['wd_black_list'], function (result) {
+            chrome.storage.sync.get(['wd_black_list'], function (result) {
                 var black_list = result.wd_black_list;
                 addToListElem.checked = black_list.hasOwnProperty(domain);
             });
@@ -43178,7 +43182,7 @@ function display_mode() {
             addToListLabelElem.textContent =
                 chrome.i18n.getMessage('addFavoritesLabel');
             addToListLabelElem.href = chrome.runtime.getURL('white_list.html');
-            chrome.storage.local.get(['wd_white_list'], function (result) {
+            chrome.storage.sync.get(['wd_white_list'], function (result) {
                 var white_list = result.wd_white_list;
                 addToListElem.checked = white_list.hasOwnProperty(domain);
             });
@@ -43193,7 +43197,7 @@ function process_checkbox() {
         var domain = url.hostname;
         document.getElementById('addHostName').textContent = domain;
         var list_name = enabled_mode ? 'wd_black_list' : 'wd_white_list';
-        chrome.storage.local.get([list_name], function (result) {
+        chrome.storage.sync.get([list_name], function (result) {
             var _a;
             var site_list = result[list_name];
             if (checkboxElem.checked) {
@@ -43202,7 +43206,7 @@ function process_checkbox() {
             else {
                 delete site_list[domain];
             }
-            chrome.storage.local.set((_a = {}, _a[list_name] = site_list, _a), function () {
+            chrome.storage.sync.set((_a = {}, _a[list_name] = site_list, _a), function () {
                 display_mode();
             });
         });
@@ -43217,7 +43221,7 @@ function process_mode_switch() {
     else if (rbDisabledElem.checked) {
         enabled_mode = false;
     }
-    chrome.storage.local.set({ wd_is_enabled: enabled_mode });
+    chrome.storage.sync.set({ wd_is_enabled: enabled_mode });
     display_mode();
 }
 function process_show() {
@@ -43237,7 +43241,7 @@ function process_adjust() {
     });
 }
 function display_vocabulary_size() {
-    chrome.storage.local.get(['wd_user_vocabulary'], function (result) {
+    chrome.storage.sync.get(['wd_user_vocabulary'], function (result) {
         var wd_user_vocabulary = result.wd_user_vocabulary;
         var vocab_size = Object.keys(wd_user_vocabulary).length;
         document.getElementById('vocabIndicator').textContent = "".concat(vocab_size);
@@ -43265,12 +43269,12 @@ function process_add_word() {
     var addTextElem = document.getElementById('addText');
     var lexeme = addTextElem.value;
     if (lexeme === 'dev-mode-on') {
-        chrome.storage.local.set({ wd_developer_mode: true });
+        chrome.storage.sync.set({ wd_developer_mode: true });
         addTextElem.value = '';
         return;
     }
     if (lexeme === 'dev-mode-off') {
-        chrome.storage.local.set({ wd_developer_mode: false });
+        chrome.storage.sync.set({ wd_developer_mode: false });
         addTextElem.value = '';
         return;
     }
@@ -43283,12 +43287,12 @@ function display_percents(show_percents) {
     document.getElementById('countIndicator').textContent = "".concat(not_showing_cnt);
 }
 function process_rate(increase) {
-    chrome.storage.local.get(['wd_show_percents'], function (result) {
+    chrome.storage.sync.get(['wd_show_percents'], function (result) {
         var show_percents = result.wd_show_percents;
         show_percents += increase;
         show_percents = Math.min(100, Math.max(0, show_percents));
         display_percents(show_percents);
-        chrome.storage.local.set({ wd_show_percents: show_percents });
+        chrome.storage.sync.set({ wd_show_percents: show_percents });
     });
 }
 function process_rate_m1() {
@@ -43309,7 +43313,7 @@ function init_controls() {
         .addEventListener('click', process_checkbox);
     document.getElementById('adjust').addEventListener('click', process_adjust);
     document.getElementById('showVocab').addEventListener('click', process_show);
-    // document.getElementById('getHelp1').addEventListener('click', process_help)
+    // document.getElementById('getHelp').addEventListener('click', process_help)
     document.getElementById('addWord').addEventListener('click', process_add_word);
     document.getElementById('rateM10').addEventListener('click', process_rate_m10);
     document.getElementById('rateM1').addEventListener('click', process_rate_m1);
@@ -43330,18 +43334,17 @@ function init_controls() {
         }
     });
     display_vocabulary_size();
-    chrome.storage.local.get(['wd_show_percents', 'wd_is_enabled', 'wd_word_max_rank'], function (result) {
+    chrome.storage.sync.get(['wd_show_percents', 'wd_is_enabled', 'wd_word_max_rank'], function (result) {
         var show_percents = result.wd_show_percents;
         enabled_mode = result.wd_is_enabled;
         dict_size = result.wd_word_max_rank;
-        display_percents(show_percents);
-        display_mode();
+        chrome.storage.local.get(['wd_word_max_rank'], function (result1) {
+            dict_size = result1.wd_word_max_rank;
+            display_percents(show_percents);
+            display_mode();
+        });
     });
 }
-// document.addEventListener('DOMContentLoaded', function (event) {
-//   localizeHtmlPage()
-//   init_controls()
-// })
 function Popup() {
     var _this = this;
     var getToken = (0,_clerk_chrome_extension__WEBPACK_IMPORTED_MODULE_4__.useAuth)().getToken;
@@ -43360,7 +43363,9 @@ function Popup() {
                         headers: {
                             Authorization: token,
                         },
-                    }).then(function (res) { return res.json(); }).then(console.log);
+                    })
+                        .then(function (res) { return res.json(); })
+                        .then(console.log);
                     return [2 /*return*/];
             }
         });
@@ -43368,29 +43373,33 @@ function Popup() {
     return (react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null,
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("fieldset", null,
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", { type: "radio", id: "rb_enabled", name: "switch_mode", value: "rb_enabled" }),
-            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", { className: "cbLabel", htmlFor: "rb_enabled" }, "__MSG_enabledDescription__"),
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", { className: "cbLabel", htmlFor: "rb_enabled" }, chrome.i18n.getMessage('enabledDescription')),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", { type: "radio", id: "rb_disabled", name: "switch_mode", value: "rb_disabled" }),
-            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", { className: "cbLabel", htmlFor: "rb_disabled" }, "__MSG_disabledDescription__"),
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", { className: "cbLabel", htmlFor: "rb_disabled" }, chrome.i18n.getMessage('disabledDescription')),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", { id: "add_to_list_group" },
                 react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", { type: "checkbox", id: "addToList" }),
                 react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", { className: "cbLabel" },
-                    react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, "__MSG_addVerb__ \""),
+                    react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null,
+                        chrome.i18n.getMessage('addVerb'),
+                        " \""),
                     react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", { id: "addHostName" }),
-                    react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, "\" __MSG_toVerb__ "),
+                    react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null,
+                        "\" ",
+                        chrome.i18n.getMessage('toVerb')),
                     react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", { href: "example.com", target: "_blank", id: "addToListLabel" }))),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null)),
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null),
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("fieldset", null,
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", { className: "rateInfo" },
-                "__MSG_rateInfo1__",
-                ' ',
+                chrome.i18n.getMessage('rateInfo1'),
                 react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", { className: "indicator", id: "countIndicator" }, "n/a"),
                 ' ',
                 "(",
                 react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", { className: "indicator", id: "rateIndicator1" }, "n/a"),
-                ") __MSG_rateInfo2__"),
+                ") ",
+                chrome.i18n.getMessage('rateInfo2')),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", { className: "rateButton", id: "rateM10" }, "-10"),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", { className: "rateButton", id: "rateM1" }, "-1"),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", { className: "display: inline-block", id: "rateIndicator2" }, "n/a"),
@@ -43399,13 +43408,11 @@ function Popup() {
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null),
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("fieldset", null,
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", { className: "rateInfo" },
-                "__MSG_vocabSizeInfo1__",
-                ' ',
+                chrome.i18n.getMessage('vocabSizeInfo1'),
                 react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", { className: "indicator", id: "vocabIndicator" }, "n/a"),
-                ' ',
-                "__MSG_vocabSizeInfo2__"),
-            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", { className: "vocabButton margin_bottom display_block", id: "showVocab" }, "__MSG_showVocab__"),
-            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", { className: "rateInfo" }, "__MSG_tipInfo__"),
+                chrome.i18n.getMessage('vocabSizeInfo2')),
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", { className: "vocabButton margin_bottom display_block", id: "showVocab" }, chrome.i18n.getMessage('showVocab')),
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", { className: "rateInfo" }, chrome.i18n.getMessage('tipInfo')),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", { type: "text", id: "addText" }),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", { className: "addButton", id: "addWord" },
@@ -43414,8 +43421,8 @@ function Popup() {
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", { className: "rateInfo", id: "addOpResult" })),
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null),
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement("fieldset", null,
-            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", { className: "vocabButton", id: "adjust" }, "__MSG_adjust__"),
-            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", { className: "helpButton", id: "getHelp1", onClick: handleClick }, "?"))));
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", { className: "vocabButton", id: "adjust" }, chrome.i18n.getMessage('adjust')),
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", { className: "helpButton", id: "getHelp", onClick: process_help }, "?"))));
 }
 function PopupWrap() {
     var _a = (0,_clerk_chrome_extension__WEBPACK_IMPORTED_MODULE_4__.useUser)(), isSignedIn = _a.isSignedIn, user = _a.user;

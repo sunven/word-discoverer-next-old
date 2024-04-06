@@ -45,7 +45,7 @@ function display_mode() {
         addToListLabelElem.textContent =
           chrome.i18n.getMessage('addSkippedLabel')
         addToListLabelElem.href = chrome.runtime.getURL('black_list.html')
-        chrome.storage.local.get(['wd_black_list'], function (result) {
+        chrome.storage.sync.get(['wd_black_list'], function (result) {
           const black_list = result.wd_black_list
           addToListElem.checked = black_list.hasOwnProperty(domain)
         })
@@ -57,7 +57,7 @@ function display_mode() {
         addToListLabelElem.textContent =
           chrome.i18n.getMessage('addFavoritesLabel')
         addToListLabelElem.href = chrome.runtime.getURL('white_list.html')
-        chrome.storage.local.get(['wd_white_list'], function (result) {
+        chrome.storage.sync.get(['wd_white_list'], function (result) {
           const white_list = result.wd_white_list
           addToListElem.checked = white_list.hasOwnProperty(domain)
         })
@@ -74,14 +74,14 @@ function process_checkbox() {
     const domain = url.hostname
     document.getElementById('addHostName').textContent = domain
     const list_name = enabled_mode ? 'wd_black_list' : 'wd_white_list'
-    chrome.storage.local.get([list_name], function (result) {
+    chrome.storage.sync.get([list_name], function (result) {
       const site_list = result[list_name]
       if (checkboxElem.checked) {
         site_list[domain] = 1
       } else {
         delete site_list[domain]
       }
-      chrome.storage.local.set({ [list_name]: site_list }, function () {
+      chrome.storage.sync.set({ [list_name]: site_list }, function () {
         display_mode()
       })
     })
@@ -100,7 +100,7 @@ function process_mode_switch() {
   } else if (rbDisabledElem.checked) {
     enabled_mode = false
   }
-  chrome.storage.local.set({ wd_is_enabled: enabled_mode })
+  chrome.storage.sync.set({ wd_is_enabled: enabled_mode })
   display_mode()
 }
 
@@ -133,7 +133,7 @@ function process_adjust() {
 }
 
 function display_vocabulary_size() {
-  chrome.storage.local.get(['wd_user_vocabulary'], function (result) {
+  chrome.storage.sync.get(['wd_user_vocabulary'], function (result) {
     const { wd_user_vocabulary } = result
     const vocab_size = Object.keys(wd_user_vocabulary).length
     document.getElementById('vocabIndicator').textContent = `${vocab_size}`
@@ -161,12 +161,12 @@ function process_add_word() {
   const addTextElem = document.getElementById('addText') as HTMLInputElement
   const lexeme = addTextElem.value
   if (lexeme === 'dev-mode-on') {
-    chrome.storage.local.set({ wd_developer_mode: true })
+    chrome.storage.sync.set({ wd_developer_mode: true })
     addTextElem.value = ''
     return
   }
   if (lexeme === 'dev-mode-off') {
-    chrome.storage.local.set({ wd_developer_mode: false })
+    chrome.storage.sync.set({ wd_developer_mode: false })
     addTextElem.value = ''
     return
   }
@@ -179,12 +179,12 @@ function display_percents(show_percents: number) {
   document.getElementById('countIndicator').textContent = `${not_showing_cnt}`
 }
 function process_rate(increase: number) {
-  chrome.storage.local.get(['wd_show_percents'], function (result) {
+  chrome.storage.sync.get(['wd_show_percents'], function (result) {
     let show_percents = result.wd_show_percents
     show_percents += increase
     show_percents = Math.min(100, Math.max(0, show_percents))
     display_percents(show_percents)
-    chrome.storage.local.set({ wd_show_percents: show_percents })
+    chrome.storage.sync.set({ wd_show_percents: show_percents })
   })
 }
 
@@ -207,7 +207,7 @@ function init_controls() {
     .addEventListener('click', process_checkbox)
   document.getElementById('adjust').addEventListener('click', process_adjust)
   document.getElementById('showVocab').addEventListener('click', process_show)
-  // document.getElementById('getHelp1').addEventListener('click', process_help)
+  // document.getElementById('getHelp').addEventListener('click', process_help)
   document.getElementById('addWord').addEventListener('click', process_add_word)
   document.getElementById('rateM10').addEventListener('click', process_rate_m10)
   document.getElementById('rateM1').addEventListener('click', process_rate_m1)
@@ -231,22 +231,20 @@ function init_controls() {
 
   display_vocabulary_size()
 
-  chrome.storage.local.get(
+  chrome.storage.sync.get(
     ['wd_show_percents', 'wd_is_enabled', 'wd_word_max_rank'],
     function (result) {
       const show_percents = result.wd_show_percents
       enabled_mode = result.wd_is_enabled
       dict_size = result.wd_word_max_rank
-      display_percents(show_percents)
-      display_mode()
+      chrome.storage.local.get(['wd_word_max_rank'], function (result1) {
+        dict_size = result1.wd_word_max_rank
+        display_percents(show_percents)
+        display_mode()
+      })
     },
   )
 }
-
-// document.addEventListener('DOMContentLoaded', function (event) {
-//   localizeHtmlPage()
-//   init_controls()
-// })
 
 function Popup() {
   const { getToken } = useAuth()
@@ -260,7 +258,9 @@ function Popup() {
       headers: {
         Authorization: token,
       },
-    }).then(res=>res.json()).then(console.log)
+    })
+      .then((res) => res.json())
+      .then(console.log)
   }
   return (
     <>
@@ -272,7 +272,7 @@ function Popup() {
           value="rb_enabled"
         />
         <label className="cbLabel" htmlFor="rb_enabled">
-          __MSG_enabledDescription__
+          {chrome.i18n.getMessage('enabledDescription')}
         </label>
         <br />
         <input
@@ -282,15 +282,15 @@ function Popup() {
           value="rb_disabled"
         />
         <label className="cbLabel" htmlFor="rb_disabled">
-          __MSG_disabledDescription__
+          {chrome.i18n.getMessage('disabledDescription')}
         </label>
         <br />
         <div id="add_to_list_group">
           <input type="checkbox" id="addToList" />
           <span className="cbLabel">
-            <span>__MSG_addVerb__ "</span>
+            <span>{chrome.i18n.getMessage('addVerb')} "</span>
             <span id="addHostName"></span>
-            <span>" __MSG_toVerb__ </span>
+            <span>" {chrome.i18n.getMessage('toVerb')}</span>
             <a href="example.com" target="_blank" id="addToListLabel"></a>
           </span>
         </div>
@@ -299,7 +299,7 @@ function Popup() {
       <br />
       <fieldset>
         <div className="rateInfo">
-          __MSG_rateInfo1__{' '}
+          {chrome.i18n.getMessage('rateInfo1')}
           <span className="indicator" id="countIndicator">
             n/a
           </span>{' '}
@@ -307,7 +307,7 @@ function Popup() {
           <span className="indicator" id="rateIndicator1">
             n/a
           </span>
-          ) __MSG_rateInfo2__
+          ) {chrome.i18n.getMessage('rateInfo2')}
         </div>
         <button className="rateButton" id="rateM10">
           -10
@@ -328,19 +328,19 @@ function Popup() {
       <br />
       <fieldset>
         <div className="rateInfo">
-          __MSG_vocabSizeInfo1__{' '}
+          {chrome.i18n.getMessage('vocabSizeInfo1')}
           <span className="indicator" id="vocabIndicator">
             n/a
-          </span>{' '}
-          __MSG_vocabSizeInfo2__
+          </span>
+          {chrome.i18n.getMessage('vocabSizeInfo2')}
         </div>
         <button
           className="vocabButton margin_bottom display_block"
           id="showVocab"
         >
-          __MSG_showVocab__
+          {chrome.i18n.getMessage('showVocab')}
         </button>
-        <span className="rateInfo">__MSG_tipInfo__</span>
+        <span className="rateInfo">{chrome.i18n.getMessage('tipInfo')}</span>
         <br />
         <input type="text" id="addText" />
         <button className="addButton" id="addWord">
@@ -352,9 +352,9 @@ function Popup() {
       <br />
       <fieldset>
         <button className="vocabButton" id="adjust">
-          __MSG_adjust__
+          {chrome.i18n.getMessage('adjust')}
         </button>
-        <button className="helpButton" id="getHelp1" onClick={handleClick}>
+        <button className="helpButton" id="getHelp" onClick={process_help}>
           ?
         </button>
       </fieldset>

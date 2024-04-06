@@ -34,7 +34,7 @@ function make_id_suffix(text) {
 
 function sync_if_needed() {
   const req_keys = ['wd_last_sync', 'wd_gd_sync_enabled', 'wd_last_sync_error']
-  chrome.storage.local.get(req_keys, function (result) {
+  chrome.storage.sync.get(req_keys, function (result) {
     const { wd_last_sync } = result
     const { wd_gd_sync_enabled } = result
     const { wd_last_sync_error } = result
@@ -55,64 +55,68 @@ function sync_if_needed() {
 
 function add_lexeme(lexeme, result_handler) {
   const req_keys = [
-    'words_discoverer_eng_dict',
-    'wd_idioms',
     'wd_user_vocabulary',
     'wd_user_vocab_added',
     'wd_user_vocab_deleted',
   ]
-  chrome.storage.local.get(req_keys, function (result) {
-    const dict_words = result.words_discoverer_eng_dict
-    const dict_idioms = result.wd_idioms
+  chrome.storage.sync.get(req_keys, function (result) {
     const user_vocabulary = result.wd_user_vocabulary
     const { wd_user_vocab_added } = result
     const { wd_user_vocab_deleted } = result
-    if (lexeme.length > 100) {
-      result_handler('bad', undefined)
-      return
-    }
-    lexeme = lexeme.toLowerCase()
-    lexeme = lexeme.trim()
-    if (!lexeme) {
-      result_handler('bad', undefined)
-      return
-    }
+    chrome.storage.local.get(
+      ['words_discoverer_eng_dict', 'wd_idioms'],
+      function (result1) {
+        const dict_words = result1.words_discoverer_eng_dict
+        const dict_idioms = result1.wd_idioms
 
-    let key = lexeme
-    if (dict_words.hasOwnProperty(lexeme)) {
-      const wf = dict_words[lexeme]
-      if (wf) {
-        const [first] = wf
-        key = first
-      }
-    } else if (dict_idioms.hasOwnProperty(lexeme)) {
-      const wf = dict_idioms[lexeme]
-      if (wf && wf !== -1) {
-        key = wf
-      }
-    }
+        if (lexeme.length > 100) {
+          result_handler('bad', undefined)
+          return
+        }
+        lexeme = lexeme.toLowerCase()
+        lexeme = lexeme.trim()
+        if (!lexeme) {
+          result_handler('bad', undefined)
+          return
+        }
 
-    if (user_vocabulary.hasOwnProperty(key)) {
-      result_handler('exists', key)
-      return
-    }
+        let key = lexeme
+        if (dict_words.hasOwnProperty(lexeme)) {
+          const wf = dict_words[lexeme]
+          if (wf) {
+            const [first] = wf
+            key = first
+          }
+        } else if (dict_idioms.hasOwnProperty(lexeme)) {
+          const wf = dict_idioms[lexeme]
+          if (wf && wf !== -1) {
+            key = wf
+          }
+        }
 
-    const new_state = { wd_user_vocabulary: user_vocabulary }
+        if (user_vocabulary.hasOwnProperty(key)) {
+          result_handler('exists', key)
+          return
+        }
 
-    user_vocabulary[key] = 1
-    if (typeof wd_user_vocab_added !== 'undefined') {
-      wd_user_vocab_added[key] = 1
-      new_state.wd_user_vocab_added = wd_user_vocab_added
-    }
-    if (typeof wd_user_vocab_deleted !== 'undefined') {
-      delete wd_user_vocab_deleted[key]
-      new_state.wd_user_vocab_deleted = wd_user_vocab_deleted
-    }
+        const new_state = { wd_user_vocabulary: user_vocabulary }
 
-    chrome.storage.local.set(new_state, function () {
-      sync_if_needed()
-      result_handler('ok', key)
-    })
+        user_vocabulary[key] = 1
+        if (typeof wd_user_vocab_added !== 'undefined') {
+          wd_user_vocab_added[key] = 1
+          new_state.wd_user_vocab_added = wd_user_vocab_added
+        }
+        if (typeof wd_user_vocab_deleted !== 'undefined') {
+          delete wd_user_vocab_deleted[key]
+          new_state.wd_user_vocab_deleted = wd_user_vocab_deleted
+        }
+
+        chrome.storage.sync.set(new_state, function () {
+          sync_if_needed()
+          result_handler('ok', key)
+        })
+      },
+    )
   })
 }
 
@@ -226,16 +230,16 @@ const list_section_names = {
 }
 
 function process_delete_simple(list_name, key) {
-  chrome.storage.local.get([list_name], function (result) {
+  chrome.storage.sync.get([list_name], function (result) {
     const user_list = result[list_name]
     delete user_list[key]
-    chrome.storage.local.set({ [list_name]: user_list })
+    chrome.storage.sync.set({ [list_name]: user_list })
     show_user_list(list_name, user_list)
   })
 }
 
 function process_delete_vocab_entry(key) {
-  chrome.storage.local.get(
+  chrome.storage.sync.get(
     ['wd_user_vocabulary', 'wd_user_vocab_added', 'wd_user_vocab_deleted'],
     function (result) {
       const user_vocabulary = result.wd_user_vocabulary
@@ -251,7 +255,7 @@ function process_delete_vocab_entry(key) {
         wd_user_vocab_deleted[key] = 1
         new_state.wd_user_vocab_deleted = wd_user_vocab_deleted
       }
-      chrome.storage.local.set(new_state, _common_lib__WEBPACK_IMPORTED_MODULE_0__.sync_if_needed)
+      chrome.storage.sync.set(new_state, _common_lib__WEBPACK_IMPORTED_MODULE_0__.sync_if_needed)
       show_user_list('wd_user_vocabulary', user_vocabulary)
     },
   )
@@ -324,7 +328,7 @@ function process_display() {
     list_name = 'wd_user_vocabulary'
   }
 
-  chrome.storage.local.get([list_name], function (result) {
+  chrome.storage.sync.get([list_name], function (result) {
     const user_list = result[list_name]
     show_user_list(list_name, user_list)
   })

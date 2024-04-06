@@ -15,7 +15,7 @@ function parse_vocabulary(text) {
 }
 
 function add_new_words(new_words) {
-  chrome.storage.local.get(
+  chrome.storage.sync.get(
     ['wd_user_vocabulary', 'wd_user_vocab_added', 'wd_user_vocab_deleted'],
     function (result) {
       const user_vocabulary = result.wd_user_vocabulary
@@ -39,7 +39,7 @@ function add_new_words(new_words) {
         }
       }
       if (num_added) {
-        chrome.storage.local.set(new_state, sync_if_needed)
+        chrome.storage.sync.set(new_state, sync_if_needed)
       }
       const num_skipped = new_words.length - num_added
       document.getElementById('addedInfo').textContent =

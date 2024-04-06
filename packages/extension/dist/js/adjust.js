@@ -209,7 +209,7 @@ function make_id_suffix(text) {
 
 function sync_if_needed() {
   const req_keys = ['wd_last_sync', 'wd_gd_sync_enabled', 'wd_last_sync_error']
-  chrome.storage.local.get(req_keys, function (result) {
+  chrome.storage.sync.get(req_keys, function (result) {
     const { wd_last_sync } = result
     const { wd_gd_sync_enabled } = result
     const { wd_last_sync_error } = result
@@ -230,64 +230,68 @@ function sync_if_needed() {
 
 function add_lexeme(lexeme, result_handler) {
   const req_keys = [
-    'words_discoverer_eng_dict',
-    'wd_idioms',
     'wd_user_vocabulary',
     'wd_user_vocab_added',
     'wd_user_vocab_deleted',
   ]
-  chrome.storage.local.get(req_keys, function (result) {
-    const dict_words = result.words_discoverer_eng_dict
-    const dict_idioms = result.wd_idioms
+  chrome.storage.sync.get(req_keys, function (result) {
     const user_vocabulary = result.wd_user_vocabulary
     const { wd_user_vocab_added } = result
     const { wd_user_vocab_deleted } = result
-    if (lexeme.length > 100) {
-      result_handler('bad', undefined)
-      return
-    }
-    lexeme = lexeme.toLowerCase()
-    lexeme = lexeme.trim()
-    if (!lexeme) {
-      result_handler('bad', undefined)
-      return
-    }
+    chrome.storage.local.get(
+      ['words_discoverer_eng_dict', 'wd_idioms'],
+      function (result1) {
+        const dict_words = result1.words_discoverer_eng_dict
+        const dict_idioms = result1.wd_idioms
 
-    let key = lexeme
-    if (dict_words.hasOwnProperty(lexeme)) {
-      const wf = dict_words[lexeme]
-      if (wf) {
-        const [first] = wf
-        key = first
-      }
-    } else if (dict_idioms.hasOwnProperty(lexeme)) {
-      const wf = dict_idioms[lexeme]
-      if (wf && wf !== -1) {
-        key = wf
-      }
-    }
+        if (lexeme.length > 100) {
+          result_handler('bad', undefined)
+          return
+        }
+        lexeme = lexeme.toLowerCase()
+        lexeme = lexeme.trim()
+        if (!lexeme) {
+          result_handler('bad', undefined)
+          return
+        }
 
-    if (user_vocabulary.hasOwnProperty(key)) {
-      result_handler('exists', key)
-      return
-    }
+        let key = lexeme
+        if (dict_words.hasOwnProperty(lexeme)) {
+          const wf = dict_words[lexeme]
+          if (wf) {
+            const [first] = wf
+            key = first
+          }
+        } else if (dict_idioms.hasOwnProperty(lexeme)) {
+          const wf = dict_idioms[lexeme]
+          if (wf && wf !== -1) {
+            key = wf
+          }
+        }
 
-    const new_state = { wd_user_vocabulary: user_vocabulary }
+        if (user_vocabulary.hasOwnProperty(key)) {
+          result_handler('exists', key)
+          return
+        }
 
-    user_vocabulary[key] = 1
-    if (typeof wd_user_vocab_added !== 'undefined') {
-      wd_user_vocab_added[key] = 1
-      new_state.wd_user_vocab_added = wd_user_vocab_added
-    }
-    if (typeof wd_user_vocab_deleted !== 'undefined') {
-      delete wd_user_vocab_deleted[key]
-      new_state.wd_user_vocab_deleted = wd_user_vocab_deleted
-    }
+        const new_state = { wd_user_vocabulary: user_vocabulary }
 
-    chrome.storage.local.set(new_state, function () {
-      sync_if_needed()
-      result_handler('ok', key)
-    })
+        user_vocabulary[key] = 1
+        if (typeof wd_user_vocab_added !== 'undefined') {
+          wd_user_vocab_added[key] = 1
+          new_state.wd_user_vocab_added = wd_user_vocab_added
+        }
+        if (typeof wd_user_vocab_deleted !== 'undefined') {
+          delete wd_user_vocab_deleted[key]
+          new_state.wd_user_vocab_deleted = wd_user_vocab_deleted
+        }
+
+        chrome.storage.sync.set(new_state, function () {
+          sync_if_needed()
+          result_handler('ok', key)
+        })
+      },
+    )
   })
 }
 
@@ -701,7 +705,7 @@ const hover_popup_types = ['never', 'key', 'always']
 const target_types = ['hl', 'ow']
 
 function display_sync_interface() {
-  chrome.storage.local.get(
+  chrome.storage.sync.get(
     ['wd_gd_sync_enabled', 'wd_last_sync_error', 'wd_last_sync'],
     function (result) {
       const { wd_last_sync_error } = result
@@ -755,7 +759,7 @@ function synchronize_now() {
   document.getElementById('syncStatusFeedback').style.display = 'inline'
   document.getElementById('syncStatusFeedback').textContent =
     'Synchronization started...'
-  chrome.storage.local.set({ wd_gd_sync_enabled: true }, function () {
+  chrome.storage.sync.set({ wd_gd_sync_enabled: true }, function () {
     chrome.runtime.sendMessage({
       wdm_request: 'gd_sync',
       interactive_mode: true,
@@ -771,10 +775,7 @@ function request_permissions_and_sync() {
 }
 
 function stop_synchronization() {
-  chrome.storage.local.set(
-    { wd_gd_sync_enabled: false },
-    display_sync_interface,
-  )
+  chrome.storage.sync.set({ wd_gd_sync_enabled: false }, display_sync_interface)
 }
 
 function process_test_warnings() {
@@ -783,7 +784,7 @@ function process_test_warnings() {
 
 function process_get_dbg() {
   const storage_key = document.getElementById('getFromStorageKey').value
-  chrome.storage.local.get([storage_key], function (result) {
+  chrome.storage.sync.get([storage_key], function (result) {
     const storage_value = result[storage_key]
     console.log(`key: ${storage_key}; value: ${JSON.stringify(storage_value)}`)
   })
@@ -799,7 +800,7 @@ function process_set_dbg() {
     storage_value = JSON.parse(storage_value)
   }
   console.log(`storage_key:${storage_key}, storage_value:${storage_value}`)
-  chrome.storage.local.set({ [storage_key]: storage_value }, function () {
+  chrome.storage.sync.set({ [storage_key]: storage_value }, function () {
     const last_error = chrome.runtime.lastError
     console.log(`last_error:${last_error}`)
     console.log('finished setting value')
@@ -807,7 +808,7 @@ function process_set_dbg() {
 }
 
 function process_export() {
-  chrome.storage.local.get(['wd_user_vocabulary'], function (result) {
+  chrome.storage.sync.get(['wd_user_vocabulary'], function (result) {
     const user_vocabulary = result.wd_user_vocabulary
     const keys = []
     Object.keys(user_vocabulary).forEach((key) => {
@@ -860,7 +861,7 @@ function process_delete_old_dict(e) {
   if (!btn_id.startsWith('delDict')) return
   const btn_no = parseInt(btn_id.split('_')[1], 10)
   wd_online_dicts.splice(btn_no, 1)
-  chrome.storage.local.set({ wd_online_dicts })
+  chrome.storage.sync.set({ wd_online_dicts })
   ;(0,_context_menu_lib__WEBPACK_IMPORTED_MODULE_1__.initContextMenus)(wd_online_dicts)
   show_user_dicts()
 }
@@ -912,7 +913,7 @@ function process_add_dict() {
   dictUrl = dictUrl.trim()
   if (!dictName || !dictUrl) return
   wd_online_dicts.push({ title: dictName, url: dictUrl })
-  chrome.storage.local.set({ wd_online_dicts })
+  chrome.storage.sync.set({ wd_online_dicts })
   ;(0,_context_menu_lib__WEBPACK_IMPORTED_MODULE_1__.initContextMenus)(wd_online_dicts)
   show_user_dicts()
   document.getElementById('addDictName').value = ''
@@ -1033,7 +1034,7 @@ function hover_rb_handler() {
       }
     }
   }
-  chrome.storage.local.set({ wd_hover_settings })
+  chrome.storage.sync.set({ wd_hover_settings })
 }
 
 function add_hover_rb_listeners() {
@@ -1049,7 +1050,7 @@ function add_hover_rb_listeners() {
 
 function process_display() {
   window.onload = function () {
-    chrome.storage.local.get(
+    chrome.storage.sync.get(
       [
         'wd_hl_settings',
         'wd_hover_settings',
@@ -1150,14 +1151,14 @@ function process_display() {
         document
           .getElementById('saveVisuals')
           .addEventListener('click', function () {
-            chrome.storage.local.set({ wd_hl_settings })
+            chrome.storage.sync.set({ wd_hl_settings })
           })
 
         document
           .getElementById('defaultDicts')
           .addEventListener('click', function () {
             wd_online_dicts = (0,_context_menu_lib__WEBPACK_IMPORTED_MODULE_1__.make_default_online_dicts)()
-            chrome.storage.local.set({ wd_online_dicts })
+            chrome.storage.sync.set({ wd_online_dicts })
             ;(0,_context_menu_lib__WEBPACK_IMPORTED_MODULE_1__.initContextMenus)(wd_online_dicts)
             show_user_dicts()
           })
@@ -1166,7 +1167,7 @@ function process_display() {
           .getElementById('pronunciationEnabled')
           .addEventListener('click', function (e) {
             wd_enable_tts = e.target.checked
-            chrome.storage.local.set({ wd_enable_tts })
+            chrome.storage.sync.set({ wd_enable_tts })
           })
 
         display_sync_interface()

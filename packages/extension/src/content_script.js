@@ -561,12 +561,18 @@ function initForPage() {
   )
 
   chrome.storage.local.get(
+    ['words_discoverer_eng_dict', 'wd_idioms', 'wd_word_max_rank'],
+    function (result) {
+      dict_words = result.words_discoverer_eng_dict
+      dict_idioms = result.wd_idioms
+      word_max_rank = result.wd_word_max_rank
+    },
+  )
+
+  chrome.storage.sync.get(
     [
-      'words_discoverer_eng_dict',
       'wd_online_dicts',
-      'wd_idioms',
       'wd_hover_settings',
-      'wd_word_max_rank',
       'wd_show_percents',
       'wd_is_enabled',
       'wd_user_vocabulary',
@@ -576,13 +582,10 @@ function initForPage() {
       'wd_enable_tts',
     ],
     function (result) {
-      dict_words = result.words_discoverer_eng_dict
-      dict_idioms = result.wd_idioms
       wd_online_dicts = result.wd_online_dicts
       wd_enable_tts = result.wd_enable_tts
       user_vocabulary = result.wd_user_vocabulary
       wd_hover_settings = result.wd_hover_settings
-      word_max_rank = result.wd_word_max_rank
       const show_percents = result.wd_show_percents
       wd_hl_settings = result.wd_hl_settings
       min_show_rank = (show_percents * word_max_rank) / 100
